@@ -1,0 +1,85 @@
+<div class="container">
+  <h1 class="page-title">Friends Leaderboard</h1>
+
+  <!-- Filter Section -->
+  <div class="filter-section">
+    <div class="filter-controls">
+      <label style="color: #66c0f4; font-weight: 600;">Filter by Game:</label>
+      <select class="game-select" [(ngModel)]="selectedAppId" (change)="onGameFilterChange()">
+        <option [value]="undefined">All Games (Total Hours)</option>
+        <option *ngFor="let game of availableGames" [value]="game.appId">
+          {{ game.name }}
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading">
+    Loading friends leaderboard...
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error">
+    Failed to load friends leaderboard. Please try again.
+  </div>
+
+  <!-- Leaderboard Table -->
+  <div *ngIf="!loading && !error">
+    <div *ngIf="visibleFriends.length === 0" class="no-friends">
+      <div *ngIf="leaderboard?.appId">
+        None of your friends have played this game yet.
+      </div>
+      <div *ngIf="!leaderboard?.appId">
+        No friends data available.
+      </div>
+    </div>
+
+    <table *ngIf="visibleFriends.length > 0" class="leaderboard-table">
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Player</th>
+          <th *ngIf="!leaderboard?.appId">Total Hours</th>
+          <th *ngIf="leaderboard?.appId">Game Hours</th>
+          <th *ngIf="leaderboard?.appId">Recent (2 weeks)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let friend of visibleFriends; let i = index">
+          <td>
+            <span class="rank" 
+                  [class.first]="i === 0" 
+                  [class.second]="i === 1" 
+                  [class.third]="i === 2">
+              #{{ i + 1 }}
+            </span>
+          </td>
+          <td>
+            <div class="friend-row">
+              <img [src]="friend.avatarMedium" 
+                   [alt]="friend.personaName + ' avatar'" 
+                   class="friend-avatar"
+                   loading="lazy">
+              <span class="friend-name" [class.you]="friend.isYou">
+                {{ friend.personaName }}
+                <span *ngIf="friend.isYou" style="color: #66c0f4; font-size: 0.8rem;"> (You)</span>
+              </span>
+            </div>
+          </td>
+          <td class="hours">
+            {{ friend.hoursTotal | number:'1.0-1' }}h
+          </td>
+          <td *ngIf="leaderboard?.appId" class="recent-hours">
+            <span *ngIf="friend.hours2Weeks !== null && friend.hours2Weeks !== undefined">
+              {{ friend.hours2Weeks | number:'1.0-1' }}h
+            </span>
+            <span *ngIf="friend.hours2Weeks === null || friend.hours2Weeks === undefined" style="color: #666;">
+              -
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

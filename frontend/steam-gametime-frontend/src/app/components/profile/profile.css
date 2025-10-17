@@ -1,0 +1,446 @@
+/* Profile page Steam styling */
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  color: #c7d5e0;
+}
+
+.page-title {
+  color: #ffffff;
+  font-size: 2.5rem;
+  font-weight: 300;
+  margin-bottom: 2rem;
+  text-shadow: 0 0 10px rgba(102, 192, 244, 0.3);
+}
+
+/* Back button */
+.back-button {
+  background: rgba(27, 40, 56, 0.8);
+  border: 1px solid #4c6b83;
+  color: #c7d5e0;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: 2rem;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.back-button:hover {
+  background: rgba(102, 192, 244, 0.2);
+  border-color: #66c0f4;
+  color: #66c0f4;
+}
+
+/* Profile header */
+.profile-header {
+  background: rgba(27, 40, 56, 0.8);
+  border: 1px solid #4c6b83;
+  border-radius: 8px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+.profile-avatar-section {
+  flex-shrink: 0;
+}
+
+.profile-avatar-large {
+  width: 184px;
+  height: 184px;
+  border-radius: 8px;
+  border: 2px solid #4c6b83;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.profile-main-info {
+  flex-grow: 1;
+}
+
+.profile-persona-name {
+  color: #ffffff;
+  font-size: 2.2rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.profile-status-large {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+}
+
+.status-indicator-large {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #666;
+}
+
+.status-indicator-large.online {
+  background: #57cbde;
+  box-shadow: 0 0 8px rgba(87, 203, 222, 0.6);
+}
+
+.status-indicator-large.busy {
+  background: #ff6b6b;
+  box-shadow: 0 0 8px rgba(255, 107, 107, 0.6);
+}
+
+.status-indicator-large.away {
+  background: #ffa726;
+  box-shadow: 0 0 8px rgba(255, 167, 38, 0.6);
+}
+
+.status-indicator-large.offline {
+  background: #666;
+}
+
+.steam-level-large {
+  background: linear-gradient(135deg, rgba(102, 192, 244, 0.3) 0%, rgba(102, 192, 244, 0.1) 100%);
+  border: 2px solid rgba(102, 192, 244, 0.5);
+  color: #66c0f4;
+  font-size: 1.2rem;
+  font-weight: 700;
+  padding: 8px 16px;
+  border-radius: 6px;
+  text-align: center;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  box-shadow: 0 2px 8px rgba(102, 192, 244, 0.2);
+}
+
+/* Profile details grid */
+.profile-details {
+  background: rgba(27, 40, 56, 0.8);
+  border: 1px solid #4c6b83;
+  border-radius: 8px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.details-title {
+  color: #66c0f4;
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.details-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.detail-item {
+  background: rgba(16, 24, 32, 0.6);
+  border: 1px solid rgba(76, 107, 131, 0.3);
+  border-radius: 6px;
+  padding: 1rem;
+}
+
+.detail-label {
+  color: #66c0f4;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-value {
+  color: #ffffff;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.country-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.country-flag {
+  width: 20px;
+  height: auto;
+  border-radius: 2px;
+  border: 1px solid rgba(76, 107, 131, 0.3);
+}
+
+.privacy-indicator {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.privacy-public {
+  background: rgba(87, 203, 222, 0.2);
+  color: #57cbde;
+  border: 1px solid rgba(87, 203, 222, 0.3);
+}
+
+.privacy-private {
+  background: rgba(255, 107, 107, 0.2);
+  color: #ff6b6b;
+  border: 1px solid rgba(255, 107, 107, 0.3);
+}
+
+.steam-id {
+  font-family: 'Courier New', monospace;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 4px 8px;
+  border-radius: 3px;
+  border: 1px solid rgba(76, 107, 131, 0.3);
+  user-select: all;
+}
+
+/* Loading and error states */
+.loading, .error {
+  text-align: center;
+  color: #66c0f4;
+  font-size: 1.2rem;
+  padding: 3rem;
+}
+
+.error {
+  color: #ff6b6b;
+}
+
+.retry-button {
+  background: rgba(27, 40, 56, 0.8);
+  border: 1px solid #4c6b83;
+  color: #c7d5e0;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 1rem;
+}
+
+.retry-button:hover {
+  background: rgba(102, 192, 244, 0.2);
+  border-color: #66c0f4;
+}
+
+/* Friends section */
+.friends-section {
+  background: rgba(27, 40, 56, 0.8);
+  border: 1px solid #4c6b83;
+  border-radius: 8px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.friends-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.friends-stats {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+.friends-stat {
+  background: rgba(16, 24, 32, 0.6);
+  border: 1px solid rgba(76, 107, 131, 0.3);
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+}
+
+.friends-stat .stat-number {
+  color: #66c0f4;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.friends-stat .stat-label {
+  color: #8f98a0;
+  margin-left: 0.25rem;
+}
+
+.view-all-link {
+  background: rgba(102, 192, 244, 0.2);
+  border: 1px solid rgba(102, 192, 244, 0.4);
+  color: #66c0f4;
+  padding: 8px 16px;
+  border-radius: 4px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.view-all-link:hover {
+  background: rgba(102, 192, 244, 0.3);
+  border-color: #66c0f4;
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.friends-preview {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 2px; /* Add padding to prevent border clipping */
+}
+
+.friend-card {
+  background: rgba(16, 24, 32, 0.6);
+  border: 1px solid rgba(76, 107, 131, 0.3);
+  border-radius: 6px;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.2s ease;
+}
+
+.friend-card:hover {
+  background: rgba(35, 55, 75, 0.7);
+  border-color: #66c0f4;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 192, 244, 0.3);
+}
+
+.friend-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  border: 1px solid #4c6b83;
+}
+
+.friend-info {
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.friend-name {
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.friend-level {
+  background: rgba(102, 192, 244, 0.2);
+  border: 1px solid rgba(102, 192, 244, 0.3);
+  color: #66c0f4;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 1px 4px;
+  border-radius: 2px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.friend-status {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: #8f98a0;
+  margin-top: 2px;
+}
+
+.friend-status .status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #666;
+  flex-shrink: 0; /* Prevent the circle from being squished */
+  margin-top: 2px; /* Align with first line of text */
+}
+
+.friend-status .status-indicator.online {
+  background: #57cbde !important;
+  box-shadow: 0 0 4px rgba(87, 203, 222, 0.5);
+}
+
+.friend-status .status-indicator.busy {
+  background: #ff6b6b !important;
+  box-shadow: 0 0 4px rgba(255, 107, 107, 0.5);
+}
+
+.friend-status .status-indicator.away {
+  background: #90ee90 !important;
+  box-shadow: 0 0 4px rgba(144, 238, 144, 0.5);
+}
+
+.friend-status .status-indicator.ingame {
+  background: #90ee90 !important;
+  box-shadow: 0 0 6px rgba(144, 238, 144, 0.8);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 6px rgba(144, 238, 144, 0.8); }
+  50% { box-shadow: 0 0 10px rgba(144, 238, 144, 1); }
+  100% { box-shadow: 0 0 6px rgba(144, 238, 144, 0.8); }
+}
+
+.friend-status .status-indicator.offline {
+  background: #666 !important;
+}
+
+.friend-since {
+  color: #8f98a0;
+  font-size: 0.7rem;
+  margin-top: 2px;
+}
+
+.friends-empty {
+  text-align: center;
+  color: #8f98a0;
+  padding: 2rem;
+  font-style: italic;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .profile-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  
+  .profile-avatar-large {
+    width: 128px;
+    height: 128px;
+  }
+  
+  .profile-persona-name {
+    font-size: 1.8rem;
+  }
+  
+  .details-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .page-title {
+    font-size: 2rem;
+  }
+}

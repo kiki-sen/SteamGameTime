@@ -1,0 +1,18 @@
+<div class="container">
+<header class="app-header">
+  <div class="header-left">
+    <h1>Steam Library</h1>
+  </div>
+  <div class="header-right">
+    <app-login-button *ngIf="!isLoggedIn()"></app-login-button>
+    <app-profile-widget *ngIf="isLoggedIn()"></app-profile-widget>
+  </div>
+</header>
+
+<nav class="nav-menu">
+  <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Games</a>
+  <a routerLink="/friends" routerLinkActive="active">Leaderboard</a>
+  <a routerLink="/profile" routerLinkActive="active">Profile</a>
+</nav>
+<router-outlet></router-outlet>
+</div>

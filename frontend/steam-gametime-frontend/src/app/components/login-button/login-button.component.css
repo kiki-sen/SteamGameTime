@@ -1,0 +1,46 @@
+button {
+  padding: 8px 16px;
+  border: 1px solid #4c6b83;
+  border-radius: 4px;
+  background: rgba(27, 40, 56, 0.8);
+  color: #c7d5e0;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+button:hover {
+  background: rgba(102, 192, 244, 0.2);
+  border-color: #66c0f4;
+  color: #66c0f4;
+  transform: translateY(-1px);
+}
+
+/* Specific styling for login button */
+button:first-child {
+  background: linear-gradient(135deg, #66c0f4 0%, #4a9eff 100%);
+  border-color: #66c0f4;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(102, 192, 244, 0.3);
+}
+
+button:first-child:hover {
+  background: linear-gradient(135deg, #7dd3ff 0%, #5bb0ff 100%);
+  box-shadow: 0 4px 12px rgba(102, 192, 244, 0.4);
+  transform: translateY(-2px);
+}
+
+/* Logout button styling */
+button:not(:first-child) {
+  background: rgba(255, 107, 107, 0.2);
+  border-color: rgba(255, 107, 107, 0.4);
+  color: #ff6b6b;
+}
+
+button:not(:first-child):hover {
+  background: rgba(255, 107, 107, 0.3);
+  border-color: #ff6b6b;
+  color: #ffffff;
+}

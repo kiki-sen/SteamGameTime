@@ -1,0 +1,48 @@
+<div>
+  <div class="controls">
+    <input 
+      class="search-input" 
+      placeholder="Search your library..." 
+      [(ngModel)]="q" 
+      (ngModelChange)="reload()" 
+    />
+    <select class="sort-select" [(ngModel)]="sort" (change)="reload()">
+      <option value="hoursTotal:desc">Most Played</option>
+      <option value="hoursTotal">Least Played</option>
+      <option value="hours2w:desc">Recent Activity</option>
+      <option value="hours2w">Least Recent</option>
+      <option value="name">Name A-Z</option>
+      <option value="name:desc">Name Z-A</option>
+    </select>
+  </div>
+
+  <div *ngIf="busy" class="loading">Loading your games...</div>
+
+  <div #grid class="games-grid">
+    <div class="game-card" *ngFor="let g of page?.items" (click)="navigateToGame(g.appId)">
+      <img 
+        *ngIf="getImageUrl(g); else noImg" 
+        [src]="getImageUrl(g)" 
+        [alt]="g.name" 
+        class="game-image"
+        loading="lazy"
+        (error)="onImageError($event, g)"
+      />
+      <ng-template #noImg>
+        <div class="noimg">{{ getGameInitials(g.name) }}</div>
+      </ng-template>
+      
+      <div class="game-info">
+        <div class="name" [title]="g.name">{{ g.name }}</div>
+        <div class="hours-info">
+          <span class="hour-badge total">{{ g.hoursTotal | number:'1.0-1' }}h</span>
+          <span class="hour-badge recent" *ngIf="g.hours2Weeks > 0">{{ g.hours2Weeks | number:'1.0-1' }}h</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="game-count" *ngIf="page">
+    {{ page.total }} games in library
+  </div>
+</div>

@@ -1,0 +1,170 @@
+<div class="container mx-auto p-4">
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading">
+    Loading game details...
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error">
+    <div class="mb-4">Failed to load game details</div>
+    <button class="back-button" (click)="goBack()">
+      Back to Games
+    </button>
+  </div>
+
+  <!-- Game Details -->
+  <div *ngIf="gameDetails && !loading">
+    <!-- Back Button -->
+    <button class="back-button" (click)="goBack()">
+      ← Back to Games
+    </button>
+
+    <!-- Header Image -->
+    <div *ngIf="getLibraryHeroImage() || gameDetails.headerImage">
+      <img 
+        [src]="getLibraryHeroImage() || gameDetails.headerImage" 
+        [alt]="gameDetails.name || 'Game header'" 
+        class="header-image"
+        loading="lazy"
+        (error)="onHeroImageError($event)">
+    </div>
+
+    <!-- Game Info Card -->
+    <div class="game-info-card">
+      <h1 class="game-title" [innerHTML]="decodeHtml(gameDetails.name || 'Unknown Game')"></h1>
+      
+      <!-- Short Description -->
+      <div *ngIf="gameDetails.shortDescription" class="description">
+        <p [innerHTML]="decodeHtml(gameDetails.shortDescription)"></p>
+      </div>
+      
+      <!-- Game Metadata Table -->
+      <table class="info-table" *ngIf="hasGameInfo()">
+        <tr *ngIf="gameDetails.developers && gameDetails.developers.length > 0">
+          <td>Developer{{ gameDetails.developers.length > 1 ? 's' : '' }}</td>
+          <td>
+            <span *ngFor="let dev of gameDetails.developers; let last = last">
+              <span [innerHTML]="decodeHtml(dev)"></span><span *ngIf="!last">, </span>
+            </span>
+          </td>
+        </tr>
+        
+        <tr *ngIf="gameDetails.publishers && gameDetails.publishers.length > 0">
+          <td>Publisher{{ gameDetails.publishers.length > 1 ? 's' : '' }}</td>
+          <td>
+            <span *ngFor="let pub of gameDetails.publishers; let last = last">
+              <span [innerHTML]="decodeHtml(pub)"></span><span *ngIf="!last">, </span>
+            </span>
+          </td>
+        </tr>
+        
+        <tr *ngIf="gameDetails.genres && gameDetails.genres.length > 0">
+          <td>Genres</td>
+          <td>
+            <span *ngFor="let genre of gameDetails.genres; let last = last">
+              <span [innerHTML]="decodeHtml(genre)"></span><span *ngIf="!last">, </span>
+            </span>
+          </td>
+        </tr>
+        
+        <tr *ngIf="gameDetails.website">
+          <td>Website</td>
+          <td>
+            <a [href]="gameDetails.website" target="_blank" rel="noopener noreferrer">
+              {{ gameDetails.website }}
+            </a>
+          </td>
+        </tr>
+        
+        <tr *ngIf="gameDetails.currentPlayers">
+          <td>Current Players</td>
+          <td>
+            {{ gameDetails.currentPlayers | number }} online
+          </td>
+        </tr>
+      </table>
+      
+      <!-- Detailed Description -->
+      <div *ngIf="gameDetails.detailedDescription">
+        <h2 class="game-title" style="font-size: 1.8rem; margin-bottom: 1rem;">About This Game</h2>
+        <div class="description" [innerHTML]="getSanitizedDetailedDescription()"></div>
+      </div>
+    </div>
+
+    <!-- Achievement Summary -->
+    <div *ngIf="totalAchievements > 0" class="achievement-progress">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <span style="font-size: 1.2rem; font-weight: 600; color: #66c0f4;">Achievement Progress</span>
+        <span style="font-size: 1.2rem; font-weight: 700; color: #ffffff;">{{ achievedCount }} / {{ totalAchievements }}</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" [style.width.%]="completionPercentage"></div>
+      </div>
+      <div style="text-align: center; margin-top: 1rem; color: #c7d5e0;">{{ completionPercentage }}% Complete</div>
+    </div>
+
+    <div *ngIf="totalAchievements === 0" style="text-align: center; color: #8f98a0; padding: 2rem;">
+      This game has no achievements.
+    </div>
+
+    <!-- Achievements List -->
+    <div *ngIf="totalAchievements > 0">
+      <!-- Achieved Achievements -->
+      <div *ngIf="achievedCount > 0">
+        <h3 class="section-header">Unlocked ({{ achievedCount }})</h3>
+        <div>
+          <ng-container *ngFor="let achievement of gameDetails.achievements; let i = index">
+            <div *ngIf="achievement.achieved" class="achievement-card achieved">
+              <img 
+                *ngIf="getAchievementIcon(achievement)" 
+                [src]="getAchievementIcon(achievement)" 
+                [alt]="achievement.displayName || achievement.apiName"
+                class="achievement-icon"
+                loading="lazy">
+              <div *ngIf="!getAchievementIcon(achievement)" class="achievement-icon" style="background: #4c6b83; display: flex; align-items: center; justify-content: center; color: #66c0f4; font-size: 20px;">
+                🏆
+              </div>
+              
+              <div class="achievement-content">
+                <h4 class="achievement-name" [innerHTML]="decodeHtml(achievement.displayName || achievement.apiName)"></h4>
+                <p *ngIf="achievement.description" class="achievement-description" [innerHTML]="decodeHtml(achievement.description)"></p>
+                <p *ngIf="achievement.globalPercent" class="achievement-stats">{{ achievement.globalPercent | number:'1.1-1' }}% of players have this achievement</p>
+              </div>
+              
+              <div class="achievement-date unlocked" *ngIf="formatUnlockTime(achievement.unlockTime)">
+                Unlocked {{ formatUnlockTime(achievement.unlockTime) | date:'MMM d, y, h:mm a' }}
+              </div>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+
+      <!-- Locked Achievements -->
+      <div *ngIf="totalAchievements > achievedCount">
+        <h3 class="section-header locked">Locked Achievements</h3>
+        <div>
+          <ng-container *ngFor="let achievement of gameDetails.achievements; let i = index">
+            <div *ngIf="!achievement.achieved" class="achievement-card not-achieved">
+              <img 
+                *ngIf="getAchievementIcon(achievement)" 
+                [src]="getAchievementIcon(achievement)" 
+                [alt]="achievement.displayName || achievement.apiName"
+                class="achievement-icon locked"
+                loading="lazy">
+              <div *ngIf="!getAchievementIcon(achievement)" class="achievement-icon locked" style="background: #2a2a2a; display: flex; align-items: center; justify-content: center; color: #666; font-size: 20px;">
+                🔒
+              </div>
+              
+              <div class="achievement-content">
+                <h4 class="achievement-name locked" [innerHTML]="decodeHtml(achievement.displayName || achievement.apiName)"></h4>
+                <p *ngIf="achievement.description" class="achievement-description" [innerHTML]="decodeHtml(achievement.description)"></p>
+                <p *ngIf="!achievement.description" class="achievement-description" style="font-style: italic;">Hidden achievement</p>
+                <p *ngIf="achievement.globalPercent" class="achievement-stats">{{ achievement.globalPercent | number:'1.1-1' }}% of players have this achievement</p>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,35 @@
+<div *ngIf="loading" class="loading">
+  <div class="loading-spinner"></div>
+  Loading...
+</div>
+
+<div *ngIf="!loading && profile" class="profile-widget-container">
+  <div class="profile-widget" (click)="toggleDropdown()">
+    <img [src]="profile.avatarSmall || profile.avatarMedium" 
+         [alt]="profile.personaName + ' avatar'"
+         class="profile-avatar"
+         loading="lazy">
+    
+    <div class="profile-info">
+      <div class="profile-name">{{ profile.personaName }}</div>
+      <div class="profile-status">
+        <div class="status-indicator" [ngClass]="getStatusClass()"></div>
+        <span>{{ getStatusText() }}</span>
+        <span *ngIf="profile.steamLevel" class="steam-level">{{ profile.steamLevel }}</span>
+      </div>
+    </div>
+    
+    <div class="dropdown-arrow" [class.open]="showDropdown">▼</div>
+  </div>
+  
+  <div *ngIf="showDropdown" class="dropdown-menu">
+    <a routerLink="/profile" class="dropdown-item" (click)="closeDropdown()">
+      <span class="dropdown-icon profile-icon">●</span>
+      View Profile
+    </a>
+    <button class="dropdown-item logout-item" (click)="logout()">
+      <span class="dropdown-icon logout-icon">×</span>
+      Logout
+    </button>
+  </div>
+</div>

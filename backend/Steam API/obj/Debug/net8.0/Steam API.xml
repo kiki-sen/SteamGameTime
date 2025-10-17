@@ -1,0 +1,113 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Steam API</name>
+    </assembly>
+    <members>
+        <member name="T:Steam_API.Controllers.SteamAuthController">
+            <summary>Authentication endpoints for Steam OpenID and SPA helpers.</summary>
+        </member>
+        <member name="M:Steam_API.Controllers.SteamAuthController.#ctor(Steam_API.Services.JwtTokenService,Microsoft.Extensions.Configuration.IConfiguration)">
+            <summary>Authentication endpoints for Steam OpenID and SPA helpers.</summary>
+        </member>
+        <member name="M:Steam_API.Controllers.SteamAuthController.Login">
+            <summary>Starts the Steam login flow.</summary>
+            <remarks>Redirects the browser to steamcommunity.com for OpenID authentication.</remarks>
+        </member>
+        <member name="M:Steam_API.Controllers.SteamAuthController.Callback">
+            <summary>Callback from Steam after login.</summary>
+            <remarks>Exchanges the Steam identity for a JWT and redirects the SPA with <c>?token=...</c>.</remarks>
+        </member>
+        <member name="M:Steam_API.Controllers.SteamAuthController.Me">
+            <summary>Returns the current authenticated user (JWT required).</summary>
+        </member>
+        <member name="M:Steam_API.Controllers.SteamAuthController.Logout">
+            <summary>Logs out the current authenticated user.</summary>
+        </member>
+        <member name="T:Steam_API.Controllers.SteamController">
+            <summary>Steam data endpoints (require JWT).</summary>
+        </member>
+        <member name="M:Steam_API.Controllers.SteamController.#ctor(Steam_API.Services.SteamApiClient,Steam_API.Services.SteamGameService)">
+            <summary>Steam data endpoints (require JWT).</summary>
+        </member>
+        <member name="M:Steam_API.Controllers.SteamController.GetProfile(System.String)">
+            <summary>Gets a user's public Steam profile.</summary>
+        </member>
+        <member name="M:Steam_API.Controllers.SteamController.GetGames(Steam_API.Contracts.GamesQuery)">
+            <summary>Get owned games with paging, search and sorting.</summary>
+            <remarks>Requires Bearer JWT. Steam privacy must allow game details.</remarks>
+            <param name="query">Paging/filter/sort query:
+            page (≥1), pageSize (1–200), q (search name), sort = name|hoursTotal|hours2w[:desc]</param>
+        </member>
+        <member name="M:Steam_API.Controllers.SteamController.GetGameDetails(System.Int32,System.Boolean,System.String)">
+            <summary>
+            Get detailed information about a game, including the full achievement list,
+            which achievements the signed-in user has unlocked, unlock times, and icons.
+            Optionally includes global completion percentages.
+            </summary>
+            <param name="appid">Steam AppID of the game.</param>
+            <param name="includeGlobal">Include global achievement percentages.</param>
+            <param name="lang">Response language (e.g., "english", "schinese").</param>
+        </member>
+        <member name="T:Steam_API.Dtos.AuthResultDto">
+            <summary>Authentication result returned to SPA.</summary>
+        </member>
+        <member name="P:Steam_API.Dtos.AuthResultDto.token">
+            <summary>Issued JWT for API access.</summary>
+        </member>
+        <member name="P:Steam_API.Dtos.AuthResultDto.steamid">
+            <summary>Authenticated SteamID64.</summary>
+        </member>
+        <member name="T:Steam_API.Dtos.GameDto">
+            <summary>Basic game metadata returned to the client.</summary>
+        </member>
+        <member name="P:Steam_API.Dtos.GameDto.appid">
+            <summary>Steam AppID.</summary>
+        </member>
+        <member name="P:Steam_API.Dtos.GameDto.name">
+            <summary>Localized title.</summary>
+        </member>
+        <member name="P:Steam_API.Dtos.GameDto.img_icon_url">
+            <summary>Icon hash used to build an image URL.</summary>
+        </member>
+        <member name="P:Steam_API.Dtos.GameDto.playtime_forever">
+            <summary>Total playtime in minutes.</summary>
+        </member>
+        <member name="T:Steam_API.Dtos.GameHoursDto">
+            <summary>Aggregated playtime information in hours.</summary>
+        </member>
+        <member name="P:Steam_API.Dtos.GameHoursDto.AppId">
+            <summary>Steam AppID.</summary>
+        </member>
+        <member name="P:Steam_API.Dtos.GameHoursDto.Name">
+            <summary>Game title.</summary>
+        </member>
+        <member name="P:Steam_API.Dtos.GameHoursDto.HoursTotal">
+            <summary>Total lifetime hours played (rounded 0.1h).</summary>
+        </member>
+        <member name="P:Steam_API.Dtos.GameHoursDto.Hours2Weeks">
+            <summary>Hours played in the last two weeks (rounded 0.1h).</summary>
+        </member>
+        <member name="P:Steam_API.Dtos.GameHoursDto.img_icon_url">
+            <summary>Icon image URL.</summary>
+        </member>
+        <member name="P:Steam_API.Dtos.GameHoursDto.img_logo_url">
+            <summary>Logo image URL.</summary>
+        </member>
+        <member name="T:Steam_API.Dtos.ProfileDto">
+            <summary>Minimal Steam profile information.</summary>
+        </member>
+        <member name="P:Steam_API.Dtos.ProfileDto.steamid">
+            <summary>SteamID64.</summary>
+        </member>
+        <member name="P:Steam_API.Dtos.ProfileDto.personaname">
+            <summary>Persona (display) name.</summary>
+        </member>
+        <member name="P:Steam_API.Dtos.ProfileDto.avatarfull">
+            <summary>Avatar URL (full size).</summary>
+        </member>
+        <member name="P:Steam_API.Dtos.ProfileDto.profileurl">
+            <summary>Public Steam profile URL.</summary>
+        </member>
+    </members>
+</doc>

@@ -1,0 +1,165 @@
+<div class="container">
+  <h1 class="page-title">Steam Profile</h1>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading">
+    Loading profile...
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error">
+    <div>Failed to load profile</div>
+    <button class="retry-button" (click)="loadProfile()">Retry</button>
+  </div>
+
+  <!-- Profile Content -->
+  <div *ngIf="!loading && !error && profile">
+    <!-- Profile Header -->
+    <div class="profile-header">
+      <div class="profile-avatar-section">
+        <img [src]="profile.avatarFull || profile.avatarMedium || profile.avatarSmall" 
+             [alt]="profile.personaName + ' avatar'"
+             class="profile-avatar-large"
+             loading="lazy">
+        
+        <div *ngIf="profile.steamLevel" class="steam-level-large" style="margin-top: 1rem;">
+          Level {{ profile.steamLevel }}
+        </div>
+      </div>
+      
+      <div class="profile-main-info">
+        <h2 class="profile-persona-name">{{ profile.personaName }}</h2>
+        
+        <div class="profile-status-large">
+          <div class="status-indicator-large" [ngClass]="getStatusClass()"></div>
+          <span>{{ getStatusText() }}</span>
+        </div>
+        
+        <div class="detail-value">
+          <span class="privacy-indicator" 
+                [ngClass]="profile.communityVisibilityState === 3 ? 'privacy-public' : 'privacy-private'">
+            {{ getVisibilityText() }}
+          </span>
+        </div>
+        
+        <div *ngIf="profile.countryCode" class="country-info" style="margin-top: 1rem;">
+          <img [src]="getCountryFlag()" 
+               [alt]="profile.countryCode" 
+               class="country-flag"
+               loading="lazy">
+          <span>{{ profile.countryCode }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profile Details -->
+    <div class="profile-details">
+      <h3 class="details-title">Account Information</h3>
+      
+      <div class="details-grid">
+        <div class="detail-item">
+          <div class="detail-label">Steam ID</div>
+          <div class="detail-value">
+            <span class="steam-id">{{ profile.steamId64 }}</span>
+          </div>
+        </div>
+        
+        <div class="detail-item" *ngIf="formatDate(profile.timeCreatedUtc)">
+          <div class="detail-label">Member Since</div>
+          <div class="detail-value">
+            {{ formatDate(profile.timeCreatedUtc) | date:'MMMM d, y' }}
+          </div>
+        </div>
+        
+        <div class="detail-item" *ngIf="formatDate(profile.lastLogOffUtc)">
+          <div class="detail-label">Last Seen</div>
+          <div class="detail-value">
+            {{ formatDate(profile.lastLogOffUtc) | date:'MMM d, y, h:mm a' }}
+          </div>
+        </div>
+        
+        <div class="detail-item">
+          <div class="detail-label">Profile Status</div>
+          <div class="detail-value">
+            <span class="privacy-indicator" 
+                  [ngClass]="profile.communityVisibilityState === 3 ? 'privacy-public' : 'privacy-private'">
+              {{ getVisibilityText() }}
+            </span>
+          </div>
+        </div>
+        
+        <div class="detail-item" *ngIf="profile.steamLevel">
+          <div class="detail-label">Steam Level</div>
+          <div class="detail-value">
+            <span class="steam-level-large" style="font-size: 1rem; padding: 4px 8px;">
+              {{ profile.steamLevel }}
+            </span>
+          </div>
+        </div>
+        
+        <div class="detail-item">
+          <div class="detail-label">Current Status</div>
+          <div class="detail-value">
+            <div class="status-indicator-large" [ngClass]="getStatusClass()" style="width: 10px; height: 10px;"></div>
+            {{ getStatusText() }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Friends Section -->
+    <div class="friends-section">
+      <div class="friends-header">
+        <div>
+          <h3 class="details-title" style="margin-bottom: 0.5rem;">Friends</h3>
+          <div class="friends-stats">
+            <div class="friends-stat">
+              <span class="stat-number">{{ friendsCount }}</span>
+              <span class="stat-label">Total</span>
+            </div>
+            <div class="friends-stat">
+              <span class="stat-number">{{ onlineFriendsCount }}</span>
+              <span class="stat-label">Online</span>
+            </div>
+          </div>
+        </div>
+        <a routerLink="/friends" class="view-all-link">
+          View Leaderboard →
+        </a>
+      </div>
+
+      <div *ngIf="friendsLoading" class="loading" style="padding: 2rem;">
+        Loading friends...
+      </div>
+
+      <div *ngIf="!friendsLoading && friendsCount === 0" class="friends-empty">
+        No friends found.
+      </div>
+
+      <div *ngIf="!friendsLoading && friendsCount > 0" class="friends-preview">
+        <div *ngFor="let friend of friendsList?.rows" class="friend-card">
+          <img [src]="friend.avatarSmall || friend.avatarMedium" 
+               [alt]="friend.personaName + ' avatar'"
+               class="friend-avatar"
+               loading="lazy">
+          
+          <div class="friend-info">
+            <div class="friend-name">
+              {{ friend.personaName }}
+              <span *ngIf="friend.steamLevel" class="friend-level">{{ friend.steamLevel }}</span>
+            </div>
+            <div class="friend-status">
+              <div class="status-indicator" 
+                   [ngClass]="getFriendStatusClass(friend)"
+                   style="width: 8px; height: 8px; border-radius: 50%; background: #666;"></div>
+              <span>{{ getFriendStatusText(friend) }}</span>
+            </div>
+            <div *ngIf="friend.friendSinceUtc" class="friend-since">
+              Friends since {{ formatDate(friend.friendSinceUtc) | date:'MMM y' }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

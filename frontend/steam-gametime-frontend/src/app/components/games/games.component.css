@@ -1,0 +1,213 @@
+/* Steam store-style grid */
+.games-grid {
+  width: 100%;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(8, 1fr); /* 8 games per row */
+  margin-bottom: 2rem;
+}
+
+/* Game card with larger image */
+.game-card {
+  position: relative;
+  aspect-ratio: 4/5; /* More square-like ratio matching Steam store */
+  border-radius: 4px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  background: #1e2328;
+}
+
+.game-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+  z-index: 10;
+}
+
+/* Large game image */
+.game-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+/* Fallback header images (different aspect ratio) */
+.fallback-image {
+  object-fit: contain;
+  background: #1e2328;
+}
+
+.noimg {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #2a475e 0%, #1b2838 100%);
+  color: #66c0f4;
+  font-size: 2rem;
+}
+
+/* Game info overlay */
+.game-info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+  padding: 10px 8px 8px;
+  color: white;
+}
+
+.name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.2;
+  margin-bottom: 4px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.hours-info {
+  display: flex;
+  gap: 6px;
+  font-size: 0.8rem;
+  margin-top: 2px;
+}
+
+.hour-badge {
+  background: rgba(102, 192, 244, 0.25);
+  border: 1px solid rgba(102, 192, 244, 0.4);
+  padding: 3px 8px;
+  border-radius: 4px;
+  color: #66c0f4;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.hour-badge.total {
+  background: rgba(102, 192, 244, 0.35);
+  border: 1px solid rgba(102, 192, 244, 0.6);
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 700;
+  box-shadow: 0 0 8px rgba(102, 192, 244, 0.3);
+}
+
+.hour-badge.recent {
+  background: rgba(102, 192, 244, 0.2);
+  border: 1px solid rgba(102, 192, 244, 0.3);
+  color: #66c0f4;
+  font-size: 0.75rem;
+}
+
+/* Loading message */
+.loading {
+  text-align: center;
+  color: #66c0f4;
+  font-size: 1.1rem;
+  padding: 3rem;
+  background: rgba(27, 40, 56, 0.3);
+  border-radius: 8px;
+  margin-bottom: 2rem;
+}
+
+/* Remove old styles */
+.row, .thumb, .badges, .badge { display: none; }
+
+/* Search and controls styling */
+.controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.search-input, .sort-select {
+  background: rgba(27, 40, 56, 0.8);
+  border: 1px solid #4c6b83;
+  color: #c7d5e0;
+  padding: 10px 12px;
+  border-radius: 3px;
+  font-size: 0.95rem;
+}
+
+.search-input {
+  width: 300px;
+}
+
+.search-input::placeholder {
+  color: #8f98a0;
+}
+
+.search-input:focus, .sort-select:focus {
+  outline: none;
+  border-color: #66c0f4;
+  box-shadow: 0 0 8px rgba(102, 192, 244, 0.3);
+}
+
+/* Pagination styling */
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 2rem;
+  color: #c7d5e0;
+}
+
+.pagination button {
+  background: rgba(27, 40, 56, 0.8);
+  border: 1px solid #4c6b83;
+  color: #c7d5e0;
+  padding: 8px 16px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pagination button:hover:not(:disabled) {
+  background: rgba(102, 192, 244, 0.2);
+  border-color: #66c0f4;
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.game-count {
+  text-align: center;
+  color: #8f98a0;
+  font-size: 0.9rem;
+  margin-top: 2rem;
+  padding: 1rem;
+}
+
+/* Responsive design */
+@media (max-width: 1400px) {
+  .games-grid { grid-template-columns: repeat(6, 1fr); }
+}
+
+@media (max-width: 1200px) {
+  .games-grid { grid-template-columns: repeat(5, 1fr); }
+}
+
+@media (max-width: 1000px) {
+  .games-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+@media (max-width: 800px) {
+  .games-grid { grid-template-columns: repeat(3, 1fr); }
+  .search-input { width: 250px; }
+}
+
+@media (max-width: 600px) {
+  .games-grid { grid-template-columns: repeat(2, 1fr); }
+  .controls { flex-direction: column; align-items: stretch; }
+  .search-input { width: 100%; }
+}
