@@ -1,6 +1,6 @@
 export const environment = {
     production: true,
-    apiBaseUrl: '/api',
+    apiBaseUrl: '',
     steamLoginUrl: '/api/auth/steam/login',
     enableLogging: false,
     enableDebugTools: false
