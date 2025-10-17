@@ -16,7 +16,7 @@ export class SteamService {
     constructor(private http: HttpClient) {}
 
     getProfile(): Observable<ProfileDto> {
-        return this.http.get<ProfileDto>(`${this.base}/api/steam/profile`);
+        return this.http.get<ProfileDto>(`${this.base}/steam/profile`);
     }
 
     getGames(opts: { page?: number; pageSize?: number; q?: string; sort?: string }) : Observable<PageResultDto<GameHoursDto>> {
@@ -26,24 +26,24 @@ export class SteamService {
         if (opts.q) params = params.set('q', opts.q);
         if (opts.sort) params = params.set('sort', opts.sort);        
 
-        return this.http.get<PageResultDto<GameHoursDto>>(`${this.base}/api/steam/games`, { params });
+        return this.http.get<PageResultDto<GameHoursDto>>(`${this.base}/steam/games`, { params });
     }
 
     getGameDetails(appId: number): Observable<GameDetailsDto> {
-        return this.http.get<GameDetailsDto>(`${this.base}/api/steam/${appId}/gamedetails`);
+        return this.http.get<GameDetailsDto>(`${this.base}/steam/${appId}/gamedetails`);
     }
 
     getFriendsLeaderboard(appId?: number): Observable<FriendsLeaderboardDto> {
         let params = new HttpParams();
         if (appId) params = params.set('appid', appId);
         
-        return this.http.get<FriendsLeaderboardDto>(`${this.base}/api/steam/friends/leaderboard`, { params });
+        return this.http.get<FriendsLeaderboardDto>(`${this.base}/steam/friends/leaderboard`, { params });
     }
 
     getFriendsList(includeSelf: boolean = true): Observable<FriendsListDto> {
         let params = new HttpParams();
         if (!includeSelf) params = params.set('includeSelf', 'false');
         
-        return this.http.get<FriendsListDto>(`${this.base}/api/steam/friends/list`, { params });
+        return this.http.get<FriendsListDto>(`${this.base}/steam/friends/list`, { params });
     }
 }
