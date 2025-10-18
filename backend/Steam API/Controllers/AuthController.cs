@@ -13,7 +13,7 @@ namespace Steam_API.Controllers
 {
     /// <summary>Authentication endpoints for Steam OpenID and SPA helpers.</summary>
     [ApiController]
-    [Route("auth/steam")]
+    [Route("api/auth/steam")]
     public class SteamAuthController(IJwtTokenService jwtSvc, IConfiguration cfg) : ControllerBase
     {
         static string? ExtractSteamId(ClaimsPrincipal user)
