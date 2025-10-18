@@ -127,9 +127,10 @@ builder.Services.AddAuthentication(options =>
   })
   .AddSteam(o =>
   {
-      // Default callback path is /signin-steam
+      // Use our custom callback path instead of default /signin-steam
+      o.CallbackPath = "/api/auth/steam/callback";
       o.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-  }); 
+  });
 
 builder.Services.AddAuthorization();
 builder.Services.AddControllers()
