@@ -13,7 +13,7 @@ namespace Steam_API.Controllers
 {
     /// <summary>Authentication endpoints for Steam OpenID and SPA helpers.</summary>
     [ApiController]
-    [Route("api/auth/steam")]
+    [Route("auth/steam")]
     public class SteamAuthController(IJwtTokenService jwtSvc, IConfiguration cfg) : ControllerBase
     {
         static string? ExtractSteamId(ClaimsPrincipal user)
@@ -70,6 +70,25 @@ namespace Steam_API.Controllers
             {
                 SteamId64 = User.FindFirstValue("steamId") ?? string.Empty
             });
+        }
+
+        /// <summary>Get JWT token for authenticated Steam user.</summary>
+        /// <remarks>Call this after successful Steam login to get a JWT token.</remarks>
+        [HttpGet("token")]
+        [SwaggerOperation(Summary = "Get JWT token", Description = "Returns JWT token for authenticated Steam user.")]
+        [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public IActionResult GetToken()
+        {
+            Console.WriteLine($"[GetToken] IsAuth={User?.Identity?.IsAuthenticated}, AuthType={User?.Identity?.AuthenticationType}");
+            
+            var steamId = ExtractSteamId(User);
+            Console.WriteLine($"[GetToken] Extracted SteamId={steamId}");
+            
+            if (string.IsNullOrEmpty(steamId)) return Unauthorized("Steam authentication required");
+
+            var token = jwtSvc.CreateToken(steamId);
+            return Ok(new { token, steamId });
         }
 
         /// <summary>Logs out the current authenticated user.</summary>

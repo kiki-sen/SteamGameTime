@@ -120,16 +120,18 @@ builder.Services.AddAuthentication(options =>
     })
   .AddCookie(options =>
   {
-      options.Cookie.Name = "__Host.SteamGameTimeAuth";
+      options.Cookie.Name = "SteamGameTimeAuth";
       options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-      options.Cookie.SameSite = SameSiteMode.Lax;
+      options.Cookie.SameSite = SameSiteMode.None;
       options.Cookie.HttpOnly = true;
+      options.Cookie.Path = "/";
   })
   .AddSteam(o =>
   {
-      // Use our custom callback path instead of default /signin-steam
-      o.CallbackPath = "/api/auth/steam/callback";
+      // Explicitly use default Steam callback path
+      o.ApplicationKey = builder.Configuration["Steam:ApiKey"];
       o.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+      o.CallbackPath = "/signin-steam";
   });
 
 builder.Services.AddAuthorization();
@@ -210,6 +212,7 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+app.UseForwardedHeaders();
 app.UseCors("spa");
 app.UseMiddleware<Steam_API.Infrastructure.GlobalExceptionMiddleware>();
 app.UseSwagger(options => options.OpenApiVersion = Microsoft.OpenApi.OpenApiSpecVersion.OpenApi2_0);
@@ -224,7 +227,8 @@ app.Use(async (ctx, next) =>
 {
     var hasBearer = ctx.Request.Headers["Authorization"].ToString().StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase);
     var userAuth = ctx.User?.Identity?.AuthenticationType ?? "(none)";
-    Console.WriteLine($"AuthHeaderBearer={hasBearer}, UserAuthType={userAuth}, IsAuth={ctx.User?.Identity?.IsAuthenticated}");
+    var cookies = string.Join(", ", ctx.Request.Cookies.Select(c => $"{c.Key}={c.Value[..Math.Min(10, c.Value.Length)]}"));
+    Console.WriteLine($"[{ctx.Request.Path}] AuthHeaderBearer={hasBearer}, UserAuthType={userAuth}, IsAuth={ctx.User?.Identity?.IsAuthenticated}, Cookies={cookies}");
     await next();
 });
 app.Use(async (ctx, next) =>
