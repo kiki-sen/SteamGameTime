@@ -69,9 +69,30 @@ dotnet run --environment Development
 
 The application should start without errors if the API key is properly configured.
 
+## Production Deployment
+
+For production environments, never store secrets in configuration files. Use secure secret management:
+
+### Environment Variables
+Set the Steam API key as an environment variable:
+```bash
+export Steam__ApiKey="YOUR_PRODUCTION_STEAM_API_KEY"
+```
+
+### Azure App Service
+In Azure App Service, add the configuration in the Application Settings:
+- Key: `Steam__ApiKey`
+- Value: `YOUR_PRODUCTION_STEAM_API_KEY`
+
+### Azure Key Vault (Recommended)
+1. Store the API key in Azure Key Vault
+2. Configure your application to retrieve secrets from Key Vault
+3. Use Managed Identity for authentication
+
 ## Security Notes
 
 - **Never** commit API keys to version control
 - The `appsettings.Development.json` file is automatically ignored by git
 - Use different API keys for development, staging, and production environments
-- Consider using Azure Key Vault or similar services for production secrets
+- For production, use environment variables or Azure Key Vault
+- The JWT signing key can remain in configuration files as it's not sensitive for this application
