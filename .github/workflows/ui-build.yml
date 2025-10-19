@@ -55,7 +55,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: angular-build
-        path: BookRecommender_proto/ui/dist/
+        path: ./frontend/steam-gametime-frontend/dist/
         retention-days: 30
 
     - name: Run build size analysis
