@@ -29,8 +29,36 @@
         (error)="onHeroImageError($event)">
     </div>
 
+    <!-- Navigation Pane -->
+    <div *ngIf="showNavigation" class="navigation-pane">
+      <div class="nav-container">
+        <div class="nav-title">Contents</div>
+        <div class="nav-sections">
+          <div *ngFor="let section of navigationSections" class="nav-section">
+            <div class="nav-main-item" (click)="scrollToSection(section.id)">
+              {{ section.title }}
+            </div>
+            <div *ngIf="section.subItems && section.subItems.length > 0" class="nav-sub-items">
+              <div 
+                *ngFor="let subItem of section.subItems" 
+                class="nav-sub-item"
+                [class.nav-level-1]="subItem.level === 1"
+                [class.nav-level-2]="subItem.level === 2"
+                [class.nav-level-3]="subItem.level === 3"
+                [class.nav-level-4]="subItem.level === 4"
+                [class.nav-level-5]="subItem.level === 5"
+                [class.nav-level-6]="subItem.level === 6"
+                (click)="scrollToSection(subItem.id)">
+                {{ subItem.title }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Game Info Card -->
-    <div class="game-info-card">
+    <div class="game-info-card" id="game-title">
       <h1 class="game-title" [innerHTML]="decodeHtml(gameDetails.name || 'Unknown Game')"></h1>
       
       <!-- Short Description -->
@@ -85,14 +113,14 @@
       </table>
       
       <!-- Detailed Description -->
-      <div *ngIf="gameDetails.detailedDescription">
+      <div *ngIf="gameDetails.detailedDescription" id="about-game">
         <h2 class="game-title" style="font-size: 1.8rem; margin-bottom: 1rem;">About This Game</h2>
         <div class="description" [innerHTML]="getSanitizedDetailedDescription()"></div>
       </div>
     </div>
 
     <!-- Achievement Summary -->
-    <div *ngIf="totalAchievements > 0" class="achievement-progress">
+    <div *ngIf="totalAchievements > 0" class="achievement-progress" id="achievement-progress">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
         <span style="font-size: 1.2rem; font-weight: 600; color: #66c0f4;">Achievement Progress</span>
         <span style="font-size: 1.2rem; font-weight: 700; color: #ffffff;">{{ achievedCount }} / {{ totalAchievements }}</span>
