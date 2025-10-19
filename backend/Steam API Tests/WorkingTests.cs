@@ -1,3 +1,4 @@
+using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Moq;
@@ -18,9 +19,17 @@ namespace Steam_API_Tests
             _mockConfig = new Mock<IConfiguration>();
             
             var mockJwtSection = new Mock<IConfigurationSection>();
-            mockJwtSection.Setup(x => x["Issuer"]).Returns("test-issuer");
-            mockJwtSection.Setup(x => x["Audience"]).Returns("test-audience");
-            _mockConfig.Setup(x => x.GetSection("Jwt")).Returns(mockJwtSection.Object);
+            mockJwtSection
+                .Setup(x => x["Issuer"])
+                .Returns("test-issuer");
+
+            mockJwtSection
+                .Setup(x => x["Audience"])
+                .Returns("test-audience");
+
+            _mockConfig
+                .Setup(x => x.GetSection("Jwt"))
+                .Returns(mockJwtSection.Object);
             
             var key = "super-secret-key-that-is-long-enough-for-hmac-sha256-algorithm";
             _signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
@@ -37,17 +46,18 @@ namespace Steam_API_Tests
             var token = service.CreateToken(steamId);
 
             // Assert
-            Assert.NotNull(token);
-            Assert.NotEmpty(token);
+            token.Should().NotBeNull();
+            token.Should().NotBeEmpty();
 
             // Verify token can be parsed
             var tokenHandler = new JwtSecurityTokenHandler();
             var jwtToken = tokenHandler.ReadJwtToken(token);
-            
-            Assert.Equal("test-issuer", jwtToken.Issuer);
-            Assert.Equal("test-audience", jwtToken.Audiences.First());
-            Assert.Contains(jwtToken.Claims, c => c.Type == JwtRegisteredClaimNames.Sub && c.Value == steamId);
-            Assert.Contains(jwtToken.Claims, c => c.Type == ClaimTypes.Name && c.Value == steamId);
+
+
+            jwtToken.Issuer.Should().Be("test-issuer");
+            jwtToken.Audiences.First().Should().Be("test-audience");
+            jwtToken.Claims.Should().Contain(c => c.Type == JwtRegisteredClaimNames.Sub && c.Value == steamId);
+            jwtToken.Claims.Should().Contain(c => c.Type == ClaimTypes.Name && c.Value == steamId);
         }
 
         [Fact]
@@ -69,7 +79,7 @@ namespace Steam_API_Tests
             var actualExpiry = jwtToken.ValidTo;
             
             // Allow 1 minute tolerance for test execution time
-            Assert.True(Math.Abs((expectedExpiry - actualExpiry).TotalMinutes) < 1);
+            (Math.Abs((expectedExpiry - actualExpiry).TotalMinutes) < 1).Should().BeTrue();
         }
 
         [Theory]
@@ -89,8 +99,8 @@ namespace Steam_API_Tests
             var jwtToken = tokenHandler.ReadJwtToken(token);
             var subjectClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub);
             
-            Assert.NotNull(subjectClaim);
-            Assert.Equal(steamId, subjectClaim.Value);
+            subjectClaim.Should().NotBeNull();
+            steamId.Should().Be(subjectClaim.Value);
         }
     }
 
@@ -104,11 +114,13 @@ namespace Steam_API_Tests
             var mockConfig = new Mock<IConfiguration>();
             
             // Setup mock to return a valid API key
-            mockConfig.Setup(x => x["Steam:ApiKey"]).Returns("test-api-key");
+            mockConfig
+                .Setup(x => x["Steam:ApiKey"])
+                .Returns("test-api-key");
 
             // Act & Assert - should not throw
-            var service = new Steam_API.Services.FriendsService(mockCache.Object, mockConfig.Object);
-            Assert.True(service is Steam_API.Services.IFriendsService);
+            var service = new FriendsService(mockCache.Object, mockConfig.Object);
+            (service is IFriendsService).Should().BeTrue();
         }
     }
 
@@ -119,11 +131,13 @@ namespace Steam_API_Tests
         {
             // Arrange
             var mockConfig = new Mock<IConfiguration>();
-            mockConfig.Setup(x => x["Steam:ApiKey"]).Returns("test-api-key");
+            mockConfig
+                .Setup(x => x["Steam:ApiKey"])
+                .Returns("test-api-key");
 
             // Act & Assert - should not throw
-            var client = new Steam_API.Services.SteamApiClient(mockConfig.Object);
-            Assert.NotNull(client);
+            var client = new SteamApiClient(mockConfig.Object);
+            client.Should().NotBeNull();
         }
     }
 }

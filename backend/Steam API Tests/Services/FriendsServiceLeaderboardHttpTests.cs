@@ -32,10 +32,14 @@ namespace Steam_API_Tests.Services
             {
                 Friendslist = new FriendList
                 {
-                    Friends = new List<FriendEdge>
-                    {
-                        new FriendEdge { Steamid = friendId, FriendSince = 1600000000 }
-                    }
+                    Friends =
+                    [
+                        new FriendEdge 
+                        { 
+                            Steamid = friendId, 
+                            FriendSince = 1600000000 
+                        }
+                    ]
                 }
             };
 
@@ -43,8 +47,8 @@ namespace Steam_API_Tests.Services
             {
                 Response = new PlayerSummaries
                 {
-                    players = new List<Player>
-                    {
+                    players =
+                    [
                         new Player 
                         { 
                             Steamid = meSteamId,
@@ -65,7 +69,7 @@ namespace Steam_API_Tests.Services
                             Communityvisibilitystate = 3,
                             Personastate = 1
                         }
-                    }
+                    ]
                 }
             };
 
@@ -74,10 +78,14 @@ namespace Steam_API_Tests.Services
             {
                 response = new OwnedGames
                 {
-                    games = new List<OwnedGame>
-                    {
-                        new OwnedGame { appid = appId, playtime_forever = 6000 } // 100 hours
-                    }
+                    games =
+                    [
+                        new OwnedGame
+                        {
+                            appid = appId,
+                            playtime_forever = 6000 // 100 hours
+                        }
+                    ]
                 }
             };
 
@@ -85,10 +93,14 @@ namespace Steam_API_Tests.Services
             {
                 response = new OwnedGames
                 {
-                    games = new List<OwnedGame>
-                    {
-                        new OwnedGame { appid = appId, playtime_forever = 12000 } // 200 hours
-                    }
+                    games =
+                    [
+                        new OwnedGame
+                        {
+                            appid = appId,
+                            playtime_forever = 12000 // 200 hours
+                        }
+                    ]
                 }
             };
 
@@ -97,10 +109,14 @@ namespace Steam_API_Tests.Services
             {
                 Response = new RecentlyPlayedData
                 {
-                    Games = new List<RecentlyPlayedGame>
-                    {
-                        new RecentlyPlayedGame { AppId = (uint)appId, Playtime2Weeks = 120 } // 2 hours
-                    }
+                    Games =
+                    [
+                        new RecentlyPlayedGame 
+                        { 
+                            AppId = (uint)appId, 
+                            Playtime2Weeks = 120 
+                        }
+                    ]
                 }
             };
 
@@ -108,10 +124,14 @@ namespace Steam_API_Tests.Services
             {
                 Response = new RecentlyPlayedData
                 {
-                    Games = new List<RecentlyPlayedGame>
-                    {
-                        new RecentlyPlayedGame { AppId = (uint)appId, Playtime2Weeks = 300 } // 5 hours
-                    }
+                    Games =
+                    [
+                        new RecentlyPlayedGame
+                        {
+                            AppId = (uint)appId,
+                            Playtime2Weeks = 300
+                        }
+                    ]
                 }
             };
 
@@ -136,6 +156,7 @@ namespace Steam_API_Tests.Services
                 p.SteamId64 == friendId &&
                 p.PersonaName == "ProGamer" &&
                 !p.IsYou);
+
             topPlayer.HoursTotal.Should().BeApproximately(200.0, 0.1);
             topPlayer.Hours2Weeks.Should().BeApproximately(5.0, 0.1);
 
@@ -144,6 +165,7 @@ namespace Steam_API_Tests.Services
                 p.SteamId64 == meSteamId &&
                 p.PersonaName == "TestUser" &&
                 p.IsYou);
+
             secondPlayer.HoursTotal.Should().BeApproximately(100.0, 0.1);
             secondPlayer.Hours2Weeks.Should().BeApproximately(2.0, 0.1);
 
@@ -164,10 +186,14 @@ namespace Steam_API_Tests.Services
             {
                 Friendslist = new FriendList
                 {
-                    Friends = new List<FriendEdge>
-                    {
-                        new FriendEdge { Steamid = friendId, FriendSince = 1600000000 }
-                    }
+                    Friends =
+                    [
+                        new FriendEdge 
+                        { 
+                            Steamid = friendId, 
+                            FriendSince = 1600000000 
+                        }
+                    ]
                 }
             };
 
@@ -175,11 +201,19 @@ namespace Steam_API_Tests.Services
             {
                 Response = new PlayerSummaries
                 {
-                    players = new List<Player>
-                    {
-                        new Player { Steamid = meSteamId, Personaname = "Me" },
-                        new Player { Steamid = friendId, Personaname = "Friend" }
-                    }
+                    players =
+                    [
+                        new Player 
+                        { 
+                            Steamid = meSteamId, 
+                            Personaname = "Me" 
+                        },
+                        new Player 
+                        { 
+                            Steamid = friendId, 
+                            Personaname = "Friend" 
+                        }
+                    ]
                 }
             };
 
@@ -188,13 +222,25 @@ namespace Steam_API_Tests.Services
             {
                 response = new OwnedGames
                 {
-                    games = new List<OwnedGame>
-                    {
-                        new OwnedGame { appid = 440, playtime_forever = 6000 },  // 100 hours
-                        new OwnedGame { appid = 730, playtime_forever = 3000 },  // 50 hours
-                        new OwnedGame { appid = 570, playtime_forever = 9000 }   // 150 hours
+                    games =
+                    [
+                        new OwnedGame 
+                        { 
+                            appid = 440, 
+                            playtime_forever = 6000 // 100 hours
+                        },  
+                        new OwnedGame 
+                        { 
+                            appid = 730, 
+                            playtime_forever = 3000 // 50 hours
+                        },  
+                        new OwnedGame 
+                        { 
+                            appid = 570, 
+                            playtime_forever = 9000 // 150 hours
+                        }   
                         // Total: 300 hours
-                    }
+                    ]
                 }
             };
 
@@ -202,12 +248,20 @@ namespace Steam_API_Tests.Services
             {
                 response = new OwnedGames
                 {
-                    games = new List<OwnedGame>
-                    {
-                        new OwnedGame { appid = 440, playtime_forever = 12000 }, // 200 hours
-                        new OwnedGame { appid = 570, playtime_forever = 6000 }   // 100 hours
+                    games =
+                    [
+                        new OwnedGame 
+                        { 
+                            appid = 440, 
+                            playtime_forever = 12000 // 200 hours
+                        }, 
+                        new OwnedGame 
+                        { 
+                            appid = 570, 
+                            playtime_forever = 6000 // 100 hours
+                        }   
                         // Total: 300 hours (tied with me)
-                    }
+                    ]
                 }
             };
 
@@ -215,12 +269,20 @@ namespace Steam_API_Tests.Services
             {
                 Response = new RecentlyPlayedData
                 {
-                    Games = new List<RecentlyPlayedGame>
-                    {
-                        new RecentlyPlayedGame { AppId = 440, Playtime2Weeks = 60 }, // 1 hour
-                        new RecentlyPlayedGame { AppId = 570, Playtime2Weeks = 120 } // 2 hours
+                    Games =
+                    [
+                        new RecentlyPlayedGame 
+                        { 
+                            AppId = 440, 
+                            Playtime2Weeks = 60 // 1 hour
+                        }, 
+                        new RecentlyPlayedGame 
+                        { 
+                            AppId = 570, 
+                            Playtime2Weeks = 120 // 2 hours
+                        } 
                         // Total: 3 hours
-                    }
+                    ]
                 }
             };
 
@@ -228,10 +290,14 @@ namespace Steam_API_Tests.Services
             {
                 Response = new RecentlyPlayedData
                 {
-                    Games = new List<RecentlyPlayedGame>
-                    {
-                        new RecentlyPlayedGame { AppId = 440, Playtime2Weeks = 180 } // 3 hours
-                    }
+                    Games =
+                    [
+                        new RecentlyPlayedGame 
+                        { 
+                            AppId = 440, 
+                            Playtime2Weeks = 180 // 3 hours
+                        } 
+                    ]
                 }
             };
 
@@ -269,17 +335,21 @@ namespace Steam_API_Tests.Services
             
             var friendsListResponse = new FriendListResponse
             {
-                Friendslist = new FriendList { Friends = new List<FriendEdge>() }
+                Friendslist = new FriendList { Friends = [] }
             };
 
             var playerSummariesResponse = new PlayerSummariesResponse
             {
                 Response = new PlayerSummaries
                 {
-                    players = new List<Player>
-                    {
-                        new Player { Steamid = meSteamId, Personaname = "TestUser" }
-                    }
+                    players =
+                    [
+                        new Player 
+                        { 
+                            Steamid = meSteamId, 
+                            Personaname = "TestUser" 
+                        }
+                    ]
                 }
             };
 
@@ -287,16 +357,23 @@ namespace Steam_API_Tests.Services
             {
                 response = new OwnedGames
                 {
-                    games = new List<OwnedGame>
-                    {
-                        new OwnedGame { appid = appId, playtime_forever = 6000 }
-                    }
+                    games =
+                    [
+                        new OwnedGame 
+                        { 
+                            appid = appId, 
+                            playtime_forever = 6000 
+                        }
+                    ]
                 }
             };
 
             var recentResponse = new RecentlyPlayedResponse
             {
-                Response = new RecentlyPlayedData { Games = new List<RecentlyPlayedGame>() }
+                Response = new RecentlyPlayedData 
+                {
+                    Games = []
+                }
             };
 
             _httpTest.RespondWithJson(friendsListResponse)
@@ -332,10 +409,14 @@ namespace Steam_API_Tests.Services
             {
                 Friendslist = new FriendList
                 {
-                    Friends = new List<FriendEdge>
-                    {
-                        new FriendEdge { Steamid = friendId, FriendSince = 1600000000 }
-                    }
+                    Friends =
+                    [
+                        new FriendEdge 
+                        { 
+                            Steamid = friendId, 
+                            FriendSince = 1600000000 
+                        }
+                    ]
                 }
             };
 
@@ -343,11 +424,19 @@ namespace Steam_API_Tests.Services
             {
                 Response = new PlayerSummaries
                 {
-                    players = new List<Player>
-                    {
-                        new Player { Steamid = meSteamId, Personaname = "Me" },
-                        new Player { Steamid = friendId, Personaname = "Friend" }
-                    }
+                    players =
+                    [
+                        new Player 
+                        { 
+                            Steamid = meSteamId, 
+                            Personaname = "Me" 
+                        },
+                        new Player 
+                        { 
+                            Steamid = friendId, 
+                            Personaname = "Friend" 
+                        }
+                    ]
                 }
             };
 

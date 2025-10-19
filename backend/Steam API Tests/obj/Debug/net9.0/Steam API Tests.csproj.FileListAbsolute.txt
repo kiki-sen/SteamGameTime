@@ -438,3 +438,5 @@ C:\dev\github\SteamGameTime\backend\Steam API Tests\obj\Debug\net9.0\Steam API T
 C:\dev\github\SteamGameTime\backend\Steam API Tests\obj\Debug\net9.0\Steam API Tests.genruntimeconfig.cache
 C:\dev\github\SteamGameTime\backend\Steam API Tests\obj\Debug\net9.0\ref\Steam API Tests.dll
 C:\dev\github\SteamGameTime\backend\Steam API Tests\bin\Debug\net9.0\FluentAssertions.dll
+C:\dev\github\SteamGameTime\backend\Steam API Tests\obj\Debug\net9.0\Steam API Tests.sourcelink.json
+C:\dev\github\SteamGameTime\backend\Steam API Tests\bin\Debug\net9.0\appsettings.Production.json

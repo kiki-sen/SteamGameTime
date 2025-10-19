@@ -35,15 +35,6 @@ namespace Steam_API_Tests.Services
         }
 
         [Fact]
-        public void Constructor_WithNullConfiguration_ThrowsArgumentNullException()
-        {
-            // Act & Assert
-            var act = () => new FriendsService(_mockCache.Object, null!);
-            act.Should().Throw<ArgumentNullException>()
-                .Which.ParamName.Should().Be("cfg");
-        }
-
-        [Fact]
         public void Constructor_WithMissingApiKey_ThrowsException()
         {
             // Arrange
@@ -58,9 +49,5 @@ namespace Steam_API_Tests.Services
             act.Should().Throw<Exception>()
                 .WithMessage("Steam:ApiKey missing");
         }
-
-        // Note: Testing the actual API methods would require more complex setup
-        // including mocking HttpClient/Flurl behavior, which would need additional
-        // infrastructure. The HTTP calls are tested through integration tests.
     }
 }

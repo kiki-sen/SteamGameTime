@@ -18,7 +18,7 @@ namespace Steam_API_Tests.Controllers
         public FriendsControllerTests()
         {
             _mockFriendsService = new Mock<IFriendsService>();
-            _controller = new FriendsController(_mockFriendsService.Object, MockConfiguration.Object);
+            _controller = new FriendsController(_mockFriendsService.Object);
         }
 
         [Fact]
@@ -35,13 +35,16 @@ namespace Steam_API_Tests.Controllers
             var steamId = "76561198000000000";
             var claims = new List<Claim>
             {
-                new Claim("steamId", steamId)
+                new("steamId", steamId)
             };
+
             var identity = new ClaimsIdentity(claims, "test");
             var principal = new ClaimsPrincipal(identity);
 
             var mockHttpContext = new Mock<HttpContext>();
-            mockHttpContext.Setup(x => x.User).Returns(principal);
+            mockHttpContext
+                .Setup(x => x.User)
+                .Returns(principal);
             
             _controller.ControllerContext = new ControllerContext
             {
@@ -49,8 +52,9 @@ namespace Steam_API_Tests.Controllers
             };
 
             var expectedLeaderboard = new FriendsLeaderboardDto();
-            _mockFriendsService.Setup(x => x.GetLeaderboardAsync(steamId, null, It.IsAny<CancellationToken>()))
-                             .ReturnsAsync(expectedLeaderboard);
+            _mockFriendsService
+                .Setup(x => x.GetLeaderboardAsync(steamId, null, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedLeaderboard);
 
             // Act
             var result = await _controller.Leaderboard();
@@ -69,13 +73,16 @@ namespace Steam_API_Tests.Controllers
             var appId = 12345;
             var claims = new List<Claim>
             {
-                new Claim("steamId", steamId)
+                new("steamId", steamId)
             };
+
             var identity = new ClaimsIdentity(claims, "test");
             var principal = new ClaimsPrincipal(identity);
 
             var mockHttpContext = new Mock<HttpContext>();
-            mockHttpContext.Setup(x => x.User).Returns(principal);
+            mockHttpContext
+                .Setup(x => x.User)
+                .Returns(principal);
             
             _controller.ControllerContext = new ControllerContext
             {
@@ -83,8 +90,9 @@ namespace Steam_API_Tests.Controllers
             };
 
             var expectedLeaderboard = new FriendsLeaderboardDto();
-            _mockFriendsService.Setup(x => x.GetLeaderboardAsync(steamId, appId, It.IsAny<CancellationToken>()))
-                             .ReturnsAsync(expectedLeaderboard);
+            _mockFriendsService
+                .Setup(x => x.GetLeaderboardAsync(steamId, appId, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedLeaderboard);
 
             // Act
             var result = await _controller.Leaderboard(appId);
@@ -102,7 +110,9 @@ namespace Steam_API_Tests.Controllers
             var principal = new ClaimsPrincipal(identity);
 
             var mockHttpContext = new Mock<HttpContext>();
-            mockHttpContext.Setup(x => x.User).Returns(principal);
+            mockHttpContext
+                .Setup(x => x.User)
+                .Returns(principal);
             
             _controller.ControllerContext = new ControllerContext
             {
@@ -124,13 +134,15 @@ namespace Steam_API_Tests.Controllers
             var steamId = "76561198000000000";
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, steamId)
+                new(ClaimTypes.NameIdentifier, steamId)
             };
             var identity = new ClaimsIdentity(claims, "test");
             var principal = new ClaimsPrincipal(identity);
 
             var mockHttpContext = new Mock<HttpContext>();
-            mockHttpContext.Setup(x => x.User).Returns(principal);
+            mockHttpContext
+                .Setup(x => x.User)
+                .Returns(principal);
             
             _controller.ControllerContext = new ControllerContext
             {
@@ -138,8 +150,9 @@ namespace Steam_API_Tests.Controllers
             };
 
             var expectedLeaderboard = new FriendsLeaderboardDto();
-            _mockFriendsService.Setup(x => x.GetLeaderboardAsync(steamId, null, It.IsAny<CancellationToken>()))
-                             .ReturnsAsync(expectedLeaderboard);
+            _mockFriendsService
+                .Setup(x => x.GetLeaderboardAsync(steamId, null, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedLeaderboard);
 
             // Act
             var result = await _controller.Leaderboard();
@@ -157,13 +170,15 @@ namespace Steam_API_Tests.Controllers
             var steamId = "76561198000000000";
             var claims = new List<Claim>
             {
-                new Claim("steamId", steamId)
+                new("steamId", steamId)
             };
             var identity = new ClaimsIdentity(claims, "test");
             var principal = new ClaimsPrincipal(identity);
 
             var mockHttpContext = new Mock<HttpContext>();
-            mockHttpContext.Setup(x => x.User).Returns(principal);
+            mockHttpContext
+                .Setup(x => x.User)
+                .Returns(principal);
             
             _controller.ControllerContext = new ControllerContext
             {
@@ -171,8 +186,9 @@ namespace Steam_API_Tests.Controllers
             };
 
             var expectedFriendsList = new FriendsListDto();
-            _mockFriendsService.Setup(x => x.GetFriendsListAsync(steamId, true, It.IsAny<CancellationToken>()))
-                             .ReturnsAsync(expectedFriendsList);
+            _mockFriendsService
+                .Setup(x => x.GetFriendsListAsync(steamId, true, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedFriendsList);
 
             // Act
             var result = await _controller.List();
@@ -190,13 +206,15 @@ namespace Steam_API_Tests.Controllers
             var steamId = "76561198000000000";
             var claims = new List<Claim>
             {
-                new Claim("steamId", steamId)
+                new("steamId", steamId)
             };
             var identity = new ClaimsIdentity(claims, "test");
             var principal = new ClaimsPrincipal(identity);
 
             var mockHttpContext = new Mock<HttpContext>();
-            mockHttpContext.Setup(x => x.User).Returns(principal);
+            mockHttpContext
+                .Setup(x => x.User)
+                .Returns(principal);
             
             _controller.ControllerContext = new ControllerContext
             {
@@ -204,8 +222,9 @@ namespace Steam_API_Tests.Controllers
             };
 
             var expectedFriendsList = new FriendsListDto();
-            _mockFriendsService.Setup(x => x.GetFriendsListAsync(steamId, false, It.IsAny<CancellationToken>()))
-                             .ReturnsAsync(expectedFriendsList);
+            _mockFriendsService
+                .Setup(x => x.GetFriendsListAsync(steamId, false, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(expectedFriendsList);
 
             // Act
             var result = await _controller.List(includeSelf: false);

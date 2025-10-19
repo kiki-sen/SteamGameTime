@@ -138,7 +138,7 @@ namespace Steam_API_Tests
             _mockConfig = new Mock<IConfiguration>();
             _mockConfig.Setup(x => x["Steam:WebApiKey"]).Returns("test-web-api-key");
             
-            _controller = new FriendsController(_mockFriendsService.Object, _mockConfig.Object);
+            _controller = new FriendsController(_mockFriendsService.Object);
         }
 
         [Fact]

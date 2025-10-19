@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Steam API Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+46f8f869f9d69befdb1fc57c15c5418c7e85ee17")]
 [assembly: System.Reflection.AssemblyProductAttribute("Steam API Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Steam API Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

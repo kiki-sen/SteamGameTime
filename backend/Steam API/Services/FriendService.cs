@@ -26,14 +26,18 @@ namespace Steam_API.Services
         private static readonly SemaphoreSlim Gate = new(8); // 8 concurrent friend calls
         private static readonly SemaphoreSlim LevelGate = new(8); // throttle parallel level calls
         private readonly IMemoryCache _cache = cache ?? throw new ArgumentNullException(nameof(cache));
-        private readonly string _apiKey = (cfg ?? throw new ArgumentNullException(nameof(cfg)))["Steam:ApiKey"] ?? throw new Exception("Steam:ApiKey missing");
+        private readonly string _apiKey = cfg["Steam:ApiKey"] ?? throw new("Steam:ApiKey missing");
 
-        public async Task<FriendsLeaderboardDto> GetLeaderboardAsync(
-            string meSteamId, int? appId = null, CancellationToken ct = default)
+        public async Task<FriendsLeaderboardDto> GetLeaderboardAsync(string meSteamId, int? appId = null, CancellationToken ct = default)
         {
             // 1) Friends list
             var friends = await "https://api.steampowered.com/ISteamUser/GetFriendList/v1/"
-                .SetQueryParams(new { key = _apiKey, steamid = meSteamId, relationship = "friend" })
+                .SetQueryParams(new 
+                { 
+                    key = _apiKey, 
+                    steamid = meSteamId, 
+                    relationship = "friend" 
+                })
                 .GetJsonAsync<FriendListResponse>(HttpCompletionOption.ResponseContentRead, ct); 
 
             var ids = friends.Friendslist?.Friends?.Select(f => f.Steamid).Distinct().ToList() ?? [];
@@ -84,8 +88,6 @@ namespace Steam_API.Services
             return new FriendsLeaderboardDto { AppId = appId, Rows = ordered };
         }
 
-        // --- helpers ---
-
         private async Task<List<Player>> GetSummariesAsync(List<string> ids, CancellationToken ct)
         {
             var all = new List<Player>();
@@ -93,7 +95,11 @@ namespace Steam_API.Services
             {
                 var flat = string.Join(',', chunk);
                 var resp = await "https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/"
-                    .SetQueryParams(new { key = _apiKey, steamids = flat })
+                    .SetQueryParams(new 
+                    { 
+                        key = _apiKey, 
+                        steamids = flat 
+                    })
                     .GetJsonAsync<PlayerSummariesResponse>(HttpCompletionOption.ResponseContentRead, ct);
 
                 if (resp.Response?.players != null) all.AddRange(resp.Response.players);
@@ -101,9 +107,7 @@ namespace Steam_API.Services
             return all;
         }
 
-        // App-specific hours (fast via appids_filter)
-        private async Task<(double hours, double? hours2w, bool ok)> GetHoursForAppAsync(
-            string steamId, int appId, CancellationToken ct)
+        private async Task<(double hours, double? hours2w, bool ok)> GetHoursForAppAsync(string steamId, int appId, CancellationToken ct)
         {
             var cacheKey = $"owned:{steamId}:app:{appId}";
             if (_cache.TryGetValue(cacheKey, out (double, double?, bool) cached)) return cached;
@@ -125,7 +129,11 @@ namespace Steam_API.Services
 
                 // Recently played (for 2 weeks minutes)
                 var recent = await "https://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v1/"
-                    .SetQueryParams(new { key = _apiKey, steamid = steamId })
+                    .SetQueryParams(new 
+                    { 
+                        key = _apiKey, 
+                        steamid = steamId 
+                    })
                     .GetJsonAsync<RecentlyPlayedResponse>(HttpCompletionOption.ResponseContentRead, ct);
 
                 var mins2w = recent.Response?.Games?.FirstOrDefault(g => g.AppId == appId)?.Playtime2Weeks ?? 0;
@@ -152,13 +160,22 @@ namespace Steam_API.Services
             try
             {
                 var owned = await "https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/"
-                    .SetQueryParams(new { key = _apiKey, steamid = steamId, include_appinfo = 0 })
+                    .SetQueryParams(new 
+                    { 
+                        key = _apiKey, 
+                        steamid = steamId, 
+                        include_appinfo = 0 
+                    })
                     .GetJsonAsync<OwnedGamesResponse>(HttpCompletionOption.ResponseContentRead, ct);
 
                 var minsForever = owned.response?.games?.Sum(g => g.playtime_forever) ?? 0;
 
                 var recent = await "https://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v1/"
-                    .SetQueryParams(new { key = _apiKey, steamid = steamId })
+                    .SetQueryParams(new 
+                    { 
+                        key = _apiKey, 
+                        steamid = steamId 
+                    })
                     .GetJsonAsync<RecentlyPlayedResponse>(HttpCompletionOption.ResponseContentRead, ct);
 
                 var mins2w = recent.Response?.Games?.Sum(g => g.Playtime2Weeks ?? 0) ?? 0;
@@ -179,12 +196,17 @@ namespace Steam_API.Services
         {
             // 1) Pull friend edges (ids + since)
             var friendsResp = await "https://api.steampowered.com/ISteamUser/GetFriendList/v1/"
-                .SetQueryParams(new { key = _apiKey, steamid = meSteamId, relationship = "friend" })
+                .SetQueryParams(new 
+                { 
+                    key = _apiKey, 
+                    steamid = meSteamId, 
+                    relationship = "friend" 
+                })
                 .GetJsonAsync<FriendListResponse>(HttpCompletionOption.ResponseContentRead, ct);
 
             var edges = friendsResp.Friendslist?.Friends ?? [];
 
-            // 2) Compose list of IDs (optionally include self so the card can count you)
+            // 2) Compose list of IDs 
             var ids = edges.Select(f => f.Steamid).Distinct().ToList();
             if (includeSelf && !ids.Contains(meSteamId)) ids.Add(meSteamId);
 
@@ -241,7 +263,11 @@ namespace Steam_API.Services
             try
             {
                 var resp = await "https://api.steampowered.com/IPlayerService/GetSteamLevel/v1/"
-                    .SetQueryParams(new { key = _apiKey, steamid = steamId })
+                    .SetQueryParams(new 
+                    { 
+                        key = _apiKey, 
+                        steamid = steamId 
+                    })
                     .GetJsonAsync<SteamLevelResponse>(HttpCompletionOption.ResponseContentRead, ct);
 
                 var level = resp.Response?.PlayerLevel;

@@ -90,8 +90,13 @@ namespace Steam_API_Tests.Services
             // Arrange
             var invalidConfig = new Mock<IConfiguration>();
             var invalidJwtSection = new Mock<IConfigurationSection>();
-            invalidJwtSection.Setup(x => x["Issuer"]).Returns((string?)null);
-            invalidConfig.Setup(x => x.GetSection("Jwt")).Returns(invalidJwtSection.Object);
+            invalidJwtSection
+                .Setup(x => x["Issuer"])
+                .Returns((string?)null);
+
+            invalidConfig
+                .Setup(x => x.GetSection("Jwt"))
+                .Returns(invalidJwtSection.Object);
 
             var service = new JwtTokenService(_signingKey, invalidConfig.Object);
 

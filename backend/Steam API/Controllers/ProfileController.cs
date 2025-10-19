@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Steam_API.Dto.Output;
 using Steam_API.Services;
 using Swashbuckle.AspNetCore.Annotations;
+
 namespace Steam_API.Controllers
 {
     [ApiController]
@@ -28,7 +29,9 @@ namespace Steam_API.Controllers
                        ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
             if (string.IsNullOrWhiteSpace(steamId))
+            {
                 return Unauthorized();
+            }
 
             try
             {

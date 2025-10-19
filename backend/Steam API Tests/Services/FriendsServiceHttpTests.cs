@@ -3,7 +3,6 @@ using Microsoft.Extensions.Caching.Memory;
 using Steam_API.Dto.Input;
 using Steam_API.Services;
 using Steam_API_Tests.TestHelpers;
-using System.Text.Json;
 using FluentAssertions;
 
 namespace Steam_API_Tests.Services
@@ -32,8 +31,8 @@ namespace Steam_API_Tests.Services
                 {
                     Friends = new List<FriendEdge>
                     {
-                        new FriendEdge { Steamid = "76561198000000001", FriendSince = 1600000000 },
-                        new FriendEdge { Steamid = "76561198000000002", FriendSince = 1600000001 }
+                        new() { Steamid = "76561198000000001", FriendSince = 1600000000 },
+                        new() { Steamid = "76561198000000002", FriendSince = 1600000001 }
                     }
                 }
             };
@@ -44,7 +43,7 @@ namespace Steam_API_Tests.Services
                 {
                     players = new List<Player>
                     {
-                        new Player 
+                        new() 
                         { 
                             Steamid = "76561198000000000",
                             Personaname = "TestUser",
@@ -54,7 +53,7 @@ namespace Steam_API_Tests.Services
                             Communityvisibilitystate = 3,
                             Personastate = 1
                         },
-                        new Player 
+                        new() 
                         { 
                             Steamid = "76561198000000001",
                             Personaname = "Friend1",
@@ -64,7 +63,7 @@ namespace Steam_API_Tests.Services
                             Communityvisibilitystate = 3,
                             Personastate = 0
                         },
-                        new Player 
+                        new() 
                         { 
                             Steamid = "76561198000000002",
                             Personaname = "Friend2",
@@ -78,7 +77,13 @@ namespace Steam_API_Tests.Services
                 }
             };
 
-            var levelResponse = new { Response = new { player_level = 25 } };
+            var levelResponse = new 
+            { 
+                Response = new 
+                { 
+                    player_level = 25 
+                } 
+            };
 
             // Mock HTTP responses
             _httpTest.RespondWithJson(friendsListResponse)  // GetFriendList
@@ -123,7 +128,10 @@ namespace Steam_API_Tests.Services
             var steamId = "76561198000000000";
             var friendsListResponse = new FriendListResponse
             {
-                Friendslist = new FriendList { Friends = new List<FriendEdge>() }
+                Friendslist = new FriendList 
+                {
+                    Friends = []
+                }
             };
 
             var playerSummariesResponse = new PlayerSummariesResponse
@@ -146,7 +154,13 @@ namespace Steam_API_Tests.Services
                 }
             };
 
-            var levelResponse = new { Response = new { player_level = 30 } };
+            var levelResponse = new 
+            { 
+                Response = new 
+                { 
+                    player_level = 30 
+                } 
+            };
 
             _httpTest.RespondWithJson(friendsListResponse)
                     .RespondWithJson(playerSummariesResponse)
@@ -185,10 +199,14 @@ namespace Steam_API_Tests.Services
             {
                 Friendslist = new FriendList
                 {
-                    Friends = new List<FriendEdge>
-                    {
-                        new FriendEdge { Steamid = "76561198000000001", FriendSince = 1600000000 }
-                    }
+                    Friends =
+                    [
+                        new FriendEdge 
+                        { 
+                            Steamid = "76561198000000001", 
+                            FriendSince = 1600000000 
+                        }
+                    ]
                 }
             };
 
@@ -198,7 +216,7 @@ namespace Steam_API_Tests.Services
                 {
                     players = new List<Player>
                     {
-                        new Player 
+                        new() 
                         { 
                             Steamid = "76561198000000001",
                             Personaname = "Friend1",
@@ -212,7 +230,13 @@ namespace Steam_API_Tests.Services
                 }
             };
 
-            var levelResponse = new { Response = new { player_level = 15 } };
+            var levelResponse = new 
+            { 
+                Response = new 
+                { 
+                    player_level = 15 
+                } 
+            };
 
             _httpTest.RespondWithJson(friendsListResponse)
                     .RespondWithJson(playerSummariesResponse)
@@ -242,10 +266,14 @@ namespace Steam_API_Tests.Services
             {
                 Friendslist = new FriendList
                 {
-                    Friends = new List<FriendEdge>
-                    {
-                        new FriendEdge { Steamid = friendId, FriendSince = 1600000000 }
-                    }
+                    Friends =
+                    [
+                        new FriendEdge 
+                        { 
+                            Steamid = friendId, 
+                            FriendSince = 1600000000 
+                        }
+                    ]
                 }
             };
 
@@ -253,8 +281,8 @@ namespace Steam_API_Tests.Services
             {
                 Response = new PlayerSummaries
                 {
-                    players = new List<Player>
-                    {
+                    players =
+                    [
                         new Player 
                         { 
                             Steamid = friendId,
@@ -265,7 +293,7 @@ namespace Steam_API_Tests.Services
                             Communityvisibilitystate = 3,
                             Personastate = 1
                         }
-                    }
+                    ]
                 }
             };
 

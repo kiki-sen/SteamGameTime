@@ -21,6 +21,10 @@
         <member name="M:Steam_API.Controllers.SteamAuthController.Me">
             <summary>Returns the current authenticated user (JWT required).</summary>
         </member>
+        <member name="M:Steam_API.Controllers.SteamAuthController.GetToken">
+            <summary>Get JWT token for authenticated Steam user.</summary>
+            <remarks>Call this after successful Steam login to get a JWT token.</remarks>
+        </member>
         <member name="M:Steam_API.Controllers.SteamAuthController.Logout">
             <summary>Logs out the current authenticated user.</summary>
         </member>

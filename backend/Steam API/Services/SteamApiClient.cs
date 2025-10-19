@@ -1,6 +1,5 @@
 using Flurl;
 using Flurl.Http;
-using Microsoft.AspNetCore.DataProtection.KeyManagement;
 using Steam_API.Dto.Output;
 using Steam_API.Dto.Input;
 
@@ -8,7 +7,7 @@ namespace Steam_API.Services
 {
     public class SteamApiClient(IConfiguration cfg)
     {
-        private readonly string _apiKey = (cfg ?? throw new ArgumentNullException(nameof(cfg)))["Steam:ApiKey"] ?? throw new Exception("Steam:ApiKey missing");
+        private readonly string _apiKey = cfg["Steam:ApiKey"] ?? throw new("Steam:ApiKey missing");
 
         private async Task<List<GameDto>> GetOwnedGamesAsync(string steamId)
         {

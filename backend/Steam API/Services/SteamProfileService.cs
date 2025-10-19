@@ -29,18 +29,22 @@ namespace Steam_API.Services
 
             // 1) player summaries (batch-capable, but we only need 1)
             var summaries = await "https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/"
-                .SetQueryParams(new { key = _apiKey, steamids = steamId64 })
+                .SetQueryParams(new 
+                { 
+                    key = _apiKey, 
+                    steamids = steamId64 
+                })
                 .GetJsonAsync<PlayerSummariesResponse>(HttpCompletionOption.ResponseContentRead, ct);
 
-            var player = summaries.Response?.players.FirstOrDefault();
-            if (player is null)
-            {
-                throw new InvalidOperationException("Steam profile not found or not public.");
-            }
+            var player = (summaries.Response?.players.FirstOrDefault()) ?? throw new InvalidOperationException("Steam profile not found or not public.");
 
             // 2) level
             var levelResp = await "https://api.steampowered.com/IPlayerService/GetSteamLevel/v1/"
-                .SetQueryParams(new { key = _apiKey, steamid = steamId64 })
+                .SetQueryParams(new 
+                { 
+                    key = _apiKey, 
+                    steamid = steamId64 
+                })
                 .GetJsonAsync<SteamLevelResponse>(HttpCompletionOption.ResponseContentRead, ct);
 
             var dto = new ProfileDto

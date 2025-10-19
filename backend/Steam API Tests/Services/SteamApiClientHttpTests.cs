@@ -27,8 +27,8 @@ namespace Steam_API_Tests.Services
             {
                 response = new OwnedGames
                 {
-                    games = new List<OwnedGame>
-                    {
+                    games =
+                    [
                         new OwnedGame
                         {
                             appid = 440,
@@ -43,7 +43,7 @@ namespace Steam_API_Tests.Services
                             img_icon_url = "69f7ebe2735c366c65c0b33dae00e12dc40edbe4",
                             playtime_forever = 6000 // 100 hours
                         }
-                    }
+                    ]
                 }
             };
 
@@ -51,8 +51,8 @@ namespace Steam_API_Tests.Services
             {
                 Response = new RecentlyPlayedData
                 {
-                    Games = new List<RecentlyPlayedGame>
-                    {
+                    Games =
+                    [
                         new RecentlyPlayedGame
                         {
                             AppId = 440,
@@ -63,7 +63,7 @@ namespace Steam_API_Tests.Services
                             AppId = 730,
                             Playtime2Weeks = 600 // 10 hours in last 2 weeks
                         }
-                    }
+                    ]
                 }
             };
 
@@ -84,6 +84,7 @@ namespace Steam_API_Tests.Services
                 g.AppId == 440 &&
                 g.Name == "Team Fortress 2" &&
                 g.img_icon_url == "e3f595a92552da3d664ad00277fad2107345f743");
+
             tf2.HoursTotal.Should().BeApproximately(200.0, 0.1);
             tf2.Hours2Weeks.Should().BeApproximately(2.0, 0.1);
 
@@ -91,6 +92,7 @@ namespace Steam_API_Tests.Services
             cs2.Should().Match<Steam_API.Dto.Output.GameHoursDto>(g =>
                 g.AppId == 730 &&
                 g.Name == "Counter-Strike 2");
+
             cs2.HoursTotal.Should().BeApproximately(100.0, 0.1);
             cs2.Hours2Weeks.Should().BeApproximately(10.0, 0.1);
 
@@ -120,7 +122,10 @@ namespace Steam_API_Tests.Services
 
             var recentlyPlayedResponse = new RecentlyPlayedResponse
             {
-                Response = new RecentlyPlayedData { Games = new List<RecentlyPlayedGame>() }
+                Response = new RecentlyPlayedData 
+                { 
+                    Games = [] 
+                }
             };
 
             _httpTest.RespondWithJson(ownedGamesResponse)
@@ -143,8 +148,8 @@ namespace Steam_API_Tests.Services
             {
                 response = new OwnedGames
                 {
-                    games = new List<OwnedGame>
-                    {
+                    games =
+                    [
                         new OwnedGame
                         {
                             appid = 570,
@@ -152,7 +157,7 @@ namespace Steam_API_Tests.Services
                             img_icon_url = "0bbb630d63262dd66d2fdd0f7d37e8661a410075",
                             playtime_forever = 30000 // 500 hours
                         }
-                    }
+                    ]
                 }
             };
 
@@ -160,7 +165,7 @@ namespace Steam_API_Tests.Services
             {
                 Response = new RecentlyPlayedData 
                 { 
-                    Games = new List<RecentlyPlayedGame>() // No recent activity
+                    Games = [] // No recent activity
                 }
             };
 
@@ -176,6 +181,7 @@ namespace Steam_API_Tests.Services
             dota.Should().Match<Steam_API.Dto.Output.GameHoursDto>(g =>
                 g.AppId == 570 &&
                 g.Name == "Dota 2");
+
             dota.HoursTotal.Should().BeApproximately(500.0, 0.1);
             dota.Hours2Weeks.Should().BeApproximately(0.0, 0.1, "because there was no recent activity");
         }
@@ -216,8 +222,8 @@ namespace Steam_API_Tests.Services
             {
                 response = new OwnedGames
                 {
-                    games = new List<OwnedGame>
-                    {
+                    games =
+                    [
                         new OwnedGame
                         {
                             appid = 12210,
@@ -225,7 +231,7 @@ namespace Steam_API_Tests.Services
                             img_icon_url = null, // Missing icon
                             playtime_forever = 1800 // 30 hours
                         }
-                    }
+                    ]
                 }
             };
 
@@ -233,7 +239,7 @@ namespace Steam_API_Tests.Services
             {
                 Response = new RecentlyPlayedData 
                 { 
-                    Games = new List<RecentlyPlayedGame>()
+                    Games = []
                 }
             };
 
@@ -249,6 +255,7 @@ namespace Steam_API_Tests.Services
             game.Should().Match<Steam_API.Dto.Output.GameHoursDto>(g =>
                 g.AppId == 12210 &&
                 g.Name == string.Empty); // Should default to empty string
+
             game.HoursTotal.Should().BeApproximately(30.0, 0.1);
             game.Hours2Weeks.Should().BeApproximately(0.0, 0.1);
         }

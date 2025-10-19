@@ -16,16 +16,28 @@ namespace Steam_API.Controllers
     [Route("auth/steam")]
     public class SteamAuthController(IJwtTokenService jwtSvc, IConfiguration cfg) : ControllerBase
     {
-        static string? ExtractSteamId(ClaimsPrincipal user)
+        static string? ExtractSteamId(ClaimsPrincipal? user)
         {
+            if (user is null)
+            {
+                return null;
+            }
+
             // First try a pure numeric claim
             var val = user.FindFirstValue(ClaimTypes.NameIdentifier)
                      ?? user.FindFirst("steamid")?.Value
                      ?? user.Claims.FirstOrDefault(c =>
                             c.Type.EndsWith("/nameidentifier", StringComparison.OrdinalIgnoreCase))?.Value;
 
-            if (string.IsNullOrWhiteSpace(val)) return null;
-            if (Regex.IsMatch(val, @"^\d{17}$")) return val;
+            if (string.IsNullOrWhiteSpace(val))
+            {
+                return null;
+            }
+
+            if (Regex.IsMatch(val, @"^\d{17}$"))
+            {
+                return val;
+            }
 
             // If it's a URL like https://steamcommunity.com/openid/id/7656...
             var m = Regex.Match(val, @"(\d{17})$");
@@ -51,7 +63,10 @@ namespace Steam_API.Controllers
         public IActionResult Callback()
         {
             var steamId = ExtractSteamId(User);
-            if (string.IsNullOrEmpty(steamId)) return BadRequest();
+            if (string.IsNullOrEmpty(steamId))
+            {
+                return BadRequest();
+            }
 
             var token = jwtSvc.CreateToken(steamId);
             var front = cfg["Frontend:BaseUrl"]?.TrimEnd('/') ?? "http://localhost:4200";
@@ -65,7 +80,11 @@ namespace Steam_API.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public IActionResult Me()
         {
-            if (!User.Identity?.IsAuthenticated ?? true) return Unauthorized();
+            if (!User.Identity?.IsAuthenticated ?? true)
+            {
+                return Unauthorized();
+            }
+
             return Ok(new ProfileDto() 
             {
                 SteamId64 = User.FindFirstValue("steamId") ?? string.Empty
@@ -84,8 +103,11 @@ namespace Steam_API.Controllers
             
             var steamId = ExtractSteamId(User);
             Console.WriteLine($"[GetToken] Extracted SteamId={steamId}");
-            
-            if (string.IsNullOrEmpty(steamId)) return Unauthorized("Steam authentication required");
+
+            if (string.IsNullOrEmpty(steamId))
+            {
+                return Unauthorized("Steam authentication required");
+            }
 
             var token = jwtSvc.CreateToken(steamId);
             return Ok(new { token, steamId });

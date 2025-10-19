@@ -9,7 +9,7 @@ namespace Steam_API.Controllers
 {
     [ApiController]
     [Route("api/steam/friends")]
-    public class FriendsController(IFriendsService svc, IConfiguration cfg) : ControllerBase
+    public class FriendsController(IFriendsService svc) : ControllerBase
     {
         [HttpGet("leaderboard")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
@@ -23,10 +23,12 @@ namespace Steam_API.Controllers
             [FromQuery] int? appid = null,
             CancellationToken ct = default)
         {
-            var apiKey = cfg["Steam:WebApiKey"]!;
             var me = User.FindFirst("steamId")?.Value
                      ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(me)) return Unauthorized();
+            if (string.IsNullOrEmpty(me))
+            {
+                return Unauthorized();
+            }
 
             var dto = await svc.GetLeaderboardAsync(me, appid, ct);
             return Ok(dto);
@@ -45,11 +47,13 @@ namespace Steam_API.Controllers
             [FromQuery] bool includeSelf = true,
             CancellationToken ct = default)
         {
-            var apiKey = cfg["Steam:WebApiKey"]!;
             var me = User.FindFirst("steamId")?.Value
                   ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
 
-            if (string.IsNullOrWhiteSpace(me)) return Unauthorized();
+            if (string.IsNullOrWhiteSpace(me))
+            {
+                return Unauthorized();
+            }
 
             var dto = await svc.GetFriendsListAsync(me, includeSelf, ct);
             return Ok(dto);

@@ -13,7 +13,7 @@ namespace Steam_API.Services
         Task<GameDetailsDto> GetGameDetailsAsync(string steamId64, int appId, bool includeGlobal = false, string lang = "english");
     }
 
-    public sealed class SteamGameService(IConfiguration cfg, HtmlSanitizer sanitizer) : ISteamGameService
+    public sealed class SteamGameService(IConfiguration cfg, HtmlSanitizer sanitizer, ILogger<SteamGameService> logger) : ISteamGameService
     {
         private readonly string _apiKey = cfg["Steam:ApiKey"] ?? throw new("Steam:ApiKey missing");
 
@@ -23,7 +23,12 @@ namespace Steam_API.Services
         {
             // 1) Schema (achievement definitions + icons)
             var schemaTask = "https://api.steampowered.com/ISteamUserStats/GetSchemaForGame/v2/"
-                .SetQueryParams(new { key = _apiKey, appid = appId, l = lang })
+                .SetQueryParams(new 
+                { 
+                    key = _apiKey, 
+                    appid = appId, 
+                    l = lang 
+                })
                 .GetJsonAsync<SchemaForGameResponse>();
 
             // 2) User achievements (per-app)
@@ -31,7 +36,10 @@ namespace Steam_API.Services
 
             // 3) Store appdetails (header image + name)
             var storeTask = "https://store.steampowered.com/api/appdetails"
-                .SetQueryParams(new { appids = appId })
+                .SetQueryParams(new 
+                { 
+                    appids = appId 
+                })
                 .GetJsonAsync<Dictionary<string, StoreAppDetailsWrapper>>();
 
             // 4) Optional global achievements %
@@ -43,14 +51,20 @@ namespace Steam_API.Services
             // 5) CCU (current players)
             Task<CurrentPlayersResponse?> ccuTask =
                 "https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/"
-                    .SetQueryParams(new { appid = appId })
+                    .SetQueryParams(new 
+                    { 
+                        appid = appId 
+                    })
                     .AllowAnyHttpStatus()
                     .GetAsync()
                     .ContinueWith(async t =>
                     {
                         var resp = t.Result;
                         if (resp.ResponseMessage.IsSuccessStatusCode)
+                        {
                             return await resp.GetJsonAsync<CurrentPlayersResponse>();
+                        }
+
                         // treat 4xx/5xx as "no data"
                         return null;
                     }).Unwrap();
@@ -60,9 +74,12 @@ namespace Steam_API.Services
             var schema = schemaTask.Result.Game?.AvailableGameStats?.Achievements ?? [];
             var userAch = userAchTask?.Result?.PlayerStats?.Achievements ?? [];
             var store = storeTask.Result.TryGetValue(appId.ToString(), out var wrap) && wrap.Success ? wrap.Data : null;
-            var global = globalTask.Result?.Achievementpercentages?.Achievements?
-                         .ToDictionary(a => a.Name, a => (double?)a.Percent)
-                         ?? [];
+            var global = globalTask
+                .Result?
+                .Achievementpercentages?
+                .Achievements?
+                .ToDictionary(a => a.Name, a => a.Percent)
+                ?? [];
             var ccu = ccuTask.Result?.Response?.PlayerCount;
 
             // Build map of user states (apiname -> achieved + unlocktime)
@@ -70,24 +87,24 @@ namespace Steam_API.Services
 
             // Merge schema (icons/labels) + user state (+ optional global %)
             var achievements = schema.Select(s =>
-            {
-                userMap.TryGetValue(s.Name, out var state);
-                global.TryGetValue(s.Name, out var gp);
-                return new AchievementDto
                 {
-                    ApiName = s.Name,
-                    DisplayName = s.DisplayName,
-                    Description = s.Description, // may be null for hidden until earned
-                    Achieved = state.Item1,
-                    UnlockTime = state.Item2.HasValue ? DateTimeOffset.FromUnixTimeSeconds(state.Item2.Value) : null,
-                    Icon = s.Icon,
-                    IconGray = s.IconGray,
-                    GlobalPercent = gp
-                };
-            })
-            .OrderByDescending(a => a.Achieved)
-            .ThenBy(a => a.DisplayName)
-            .ToList();
+                    userMap.TryGetValue(s.Name, out var state);
+                    global.TryGetValue(s.Name, out var gp);
+                    return new AchievementDto
+                    {
+                        ApiName = s.Name,
+                        DisplayName = s.DisplayName,
+                        Description = s.Description, // may be null for hidden until earned
+                        Achieved = state.Item1,
+                        UnlockTime = state.Item2.HasValue ? DateTimeOffset.FromUnixTimeSeconds(state.Item2.Value) : null,
+                        Icon = s.Icon,
+                        IconGray = s.IconGray,
+                        GlobalPercent = gp
+                    };
+                })
+                .OrderByDescending(a => a.Achieved)
+                .ThenBy(a => a.DisplayName)
+                .ToList();
 
             return new GameDetailsDto
             {
@@ -109,7 +126,13 @@ namespace Steam_API.Services
         private async Task<PlayerAchievementsResponse?> TryGetPlayerAchievementsAsync(string steamId64, int appId, string lang = "english")
         {
             var req = "https://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v1/"
-                .SetQueryParams(new { key = _apiKey, steamid = steamId64, appid = appId, l = lang });
+                .SetQueryParams(new 
+                { 
+                    key = _apiKey, 
+                    steamid = steamId64, 
+                    appid = appId, 
+                    l = lang 
+                });
 
             var resp = await req.AllowAnyHttpStatus().GetAsync();
 
@@ -127,10 +150,9 @@ namespace Steam_API.Services
                 // Try to read Steam's error to decide what to do
                 try
                 {
-                    var err = JsonSerializer.Deserialize<PlayerAchievementsErrorEnvelope>(text);
-                    var msg = err?.Playerstats?.Error ?? "Unknown";
-                    // Log msg if you have logging; decide how you want to represent this in your response
-                    // e.g., return null and let the caller handle "no achievements available"
+                    var error = JsonSerializer.Deserialize<PlayerAchievementsErrorEnvelope>(text);
+                    var message = error?.Playerstats?.Error ?? "Unknown error serializing PlayerAchievements";
+                    logger.LogWarning(message);
                     return null;
                 }
                 catch
@@ -142,13 +164,16 @@ namespace Steam_API.Services
 
             // Other statuses → bubble up so you can see them during dev/monitoring
             resp.ResponseMessage.EnsureSuccessStatusCode();
-            return null; // not reached
+            return null;
         }
 
         static async Task<GlobalPercentResponse?> GetGlobalAsync(int appId)
         {
             var resp = await "https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v0002/"
-                .SetQueryParams(new { gameid = appId })
+                .SetQueryParams(new 
+                { 
+                    gameid = appId 
+                })
                 .AllowAnyHttpStatus()
                 .GetAsync();
 
@@ -167,5 +192,3 @@ namespace Steam_API.Services
         }
     }
 }
-
-

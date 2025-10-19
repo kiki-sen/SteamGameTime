@@ -50,20 +50,24 @@ namespace Steam_API_Tests.Controllers
             
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, steamId)
+                new(ClaimTypes.NameIdentifier, steamId)
             };
             var identity = new ClaimsIdentity(claims, "test");
             var principal = new ClaimsPrincipal(identity);
 
             var mockHttpContext = new Mock<HttpContext>();
-            mockHttpContext.Setup(x => x.User).Returns(principal);
+            mockHttpContext
+                .Setup(x => x.User)
+                .Returns(principal);
             
             _controller.ControllerContext = new ControllerContext
             {
                 HttpContext = mockHttpContext.Object
             };
 
-            _mockJwtService.Setup(x => x.CreateToken(steamId)).Returns(expectedToken);
+            _mockJwtService
+                .Setup(x => x.CreateToken(steamId))
+                .Returns(expectedToken);
 
             // Act
             var result = _controller.Callback();
@@ -83,7 +87,9 @@ namespace Steam_API_Tests.Controllers
             var principal = new ClaimsPrincipal(identity);
 
             var mockHttpContext = new Mock<HttpContext>();
-            mockHttpContext.Setup(x => x.User).Returns(principal);
+            mockHttpContext
+                .Setup(x => x.User)
+                .Returns(principal);
             
             _controller.ControllerContext = new ControllerContext
             {
@@ -104,14 +110,16 @@ namespace Steam_API_Tests.Controllers
             var steamId = "76561198000000000";
             var claims = new List<Claim>
             {
-                new Claim("steamId", steamId),
-                new Claim(ClaimTypes.Name, "TestUser")
+                new("steamId", steamId),
+                new(ClaimTypes.Name, "TestUser")
             };
             var identity = new ClaimsIdentity(claims, "test");
             var principal = new ClaimsPrincipal(identity);
 
             var mockHttpContext = new Mock<HttpContext>();
-            mockHttpContext.Setup(x => x.User).Returns(principal);
+            mockHttpContext
+                .Setup(x => x.User)
+                .Returns(principal);
             
             _controller.ControllerContext = new ControllerContext
             {
@@ -134,7 +142,9 @@ namespace Steam_API_Tests.Controllers
             var principal = new ClaimsPrincipal(identity);
 
             var mockHttpContext = new Mock<HttpContext>();
-            mockHttpContext.Setup(x => x.User).Returns(principal);
+            mockHttpContext
+                .Setup(x => x.User)
+                .Returns(principal);
             
             _controller.ControllerContext = new ControllerContext
             {
@@ -154,11 +164,14 @@ namespace Steam_API_Tests.Controllers
             // Arrange
             var mockAuthService = new Mock<IAuthenticationService>();
             var mockServiceProvider = new Mock<IServiceProvider>();
-            mockServiceProvider.Setup(x => x.GetService(typeof(IAuthenticationService)))
-                              .Returns(mockAuthService.Object);
+            mockServiceProvider
+                .Setup(x => x.GetService(typeof(IAuthenticationService)))
+                .Returns(mockAuthService.Object);
 
             var mockHttpContext = new Mock<HttpContext>();
-            mockHttpContext.Setup(x => x.RequestServices).Returns(mockServiceProvider.Object);
+            mockHttpContext
+                .Setup(x => x.RequestServices)
+                .Returns(mockServiceProvider.Object);
             
             _controller.ControllerContext = new ControllerContext
             {
@@ -183,20 +196,24 @@ namespace Steam_API_Tests.Controllers
             
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, steamIdValue)
+                new(ClaimTypes.NameIdentifier, steamIdValue)
             };
             var identity = new ClaimsIdentity(claims, "test");
             var principal = new ClaimsPrincipal(identity);
 
             var mockHttpContext = new Mock<HttpContext>();
-            mockHttpContext.Setup(x => x.User).Returns(principal);
+            mockHttpContext
+                .Setup(x => x.User)
+                .Returns(principal);
             
             _controller.ControllerContext = new ControllerContext
             {
                 HttpContext = mockHttpContext.Object
             };
 
-            _mockJwtService.Setup(x => x.CreateToken(expectedSteamId)).Returns(expectedToken);
+            _mockJwtService
+                .Setup(x => x.CreateToken(expectedSteamId))
+                .Returns(expectedToken);
 
             // Act
             var result = _controller.Callback();

@@ -9,7 +9,7 @@ namespace Steam_API.Services
         string CreateToken(string steamId);
     }
 
-    public class JwtTokenService(Microsoft.IdentityModel.Tokens.SymmetricSecurityKey signingKey, IConfiguration cfg) : IJwtTokenService
+    public class JwtTokenService(SymmetricSecurityKey signingKey, IConfiguration cfg) : IJwtTokenService
     {
         public virtual string CreateToken(string steamId)
         {
@@ -28,7 +28,6 @@ namespace Steam_API.Services
             notBefore: DateTime.UtcNow,
             expires: DateTime.UtcNow.AddDays(7),
             signingCredentials: creds);
-
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
