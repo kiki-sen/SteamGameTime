@@ -64,4 +64,4 @@ jobs:
       run: |
         echo "## Bundle Analysis" >> $GITHUB_STEP_SUMMARY
         echo "Built successfully! Bundle size information:" >> $GITHUB_STEP_SUMMARY
-        ls -la dist/ui/browser/ >> $GITHUB_STEP_SUMMARY
+        ls -la dist/steam-gametime-frontend/browser/ >> $GITHUB_STEP_SUMMARY
