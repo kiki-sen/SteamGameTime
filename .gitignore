@@ -426,3 +426,9 @@ chrome-profiler-events*.json
 environment.ts
 environment.prod.ts
 !environment.example.ts
+
+# Development settings with secrets
+appsettings.Development.json
+appsettings.Local.json
+appsettings.*.local.json
+secrets.json
