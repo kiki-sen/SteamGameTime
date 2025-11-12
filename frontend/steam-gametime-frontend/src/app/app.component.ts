@@ -22,8 +22,9 @@ export class AppComponent {
     ngOnInit() {
         const url = new URL(window.location.href);
         const token = url.searchParams.get('token');
-        if (token) {
-            this.auth.setToken(token);
+        const refreshToken = url.searchParams.get('refreshToken');
+        if (token && refreshToken) {
+            this.auth.setTokens(token, refreshToken);
             this.router.navigateByUrl('/');
         }
     }

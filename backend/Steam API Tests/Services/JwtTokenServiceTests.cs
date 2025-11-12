@@ -7,6 +7,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using FluentAssertions;
+using System.Collections.Generic;
 
 namespace Steam_API_Tests.Services
 {
@@ -19,7 +20,7 @@ namespace Steam_API_Tests.Services
         {
             var key = "super-secret-key-that-is-long-enough-for-hmac-sha256-algorithm";
             _signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
-            _service = new JwtTokenService(_signingKey, MockConfiguration.Object);
+            _service = new JwtTokenService(_signingKey, Configuration);
         }
 
         [Fact]
@@ -45,7 +46,7 @@ namespace Steam_API_Tests.Services
         }
 
         [Fact]
-        public void CreateToken_TokenExpiresInSevenDays()
+        public void CreateToken_TokenExpiresIn60Minutes()
         {
             // Arrange
             var steamId = "76561198000000000";
@@ -58,12 +59,12 @@ namespace Steam_API_Tests.Services
             var tokenHandler = new JwtSecurityTokenHandler();
             var jwtToken = tokenHandler.ReadJwtToken(token);
             
-            var expectedExpiry = beforeCreation.AddDays(7);
+            var expectedExpiry = beforeCreation.AddMinutes(60);
             var actualExpiry = jwtToken.ValidTo;
             
             // Allow 1 minute tolerance for test execution time
             Math.Abs((expectedExpiry - actualExpiry).TotalMinutes).Should().BeLessThan(1, 
-                "because token expiry should be within 1 minute of expected 7-day expiration");
+                "because token expiry should be within 1 minute of expected 60-minute expiration");
         }
 
         [Theory]
@@ -87,20 +88,21 @@ namespace Steam_API_Tests.Services
         [Fact]
         public void CreateToken_ValidatesConfigurationDependency()
         {
-            // Arrange
-            var invalidConfig = new Mock<IConfiguration>();
-            var invalidJwtSection = new Mock<IConfigurationSection>();
-            invalidJwtSection
-                .Setup(x => x["Issuer"])
-                .Returns((string?)null);
+            // Arrange - configuration with missing AccessTokenLifetimeMinutes, should use default
+            var configValues = new Dictionary<string, string>
+            {
+                ["Jwt:Issuer"] = "test-issuer",
+                ["Jwt:Audience"] = "test-audience"
+                // AccessTokenLifetimeMinutes is missing, should default to 60
+            };
 
-            invalidConfig
-                .Setup(x => x.GetSection("Jwt"))
-                .Returns(invalidJwtSection.Object);
+            var invalidConfig = new ConfigurationBuilder()
+                .AddInMemoryCollection(configValues!)
+                .Build();
 
-            var service = new JwtTokenService(_signingKey, invalidConfig.Object);
+            var service = new JwtTokenService(_signingKey, invalidConfig);
 
-            // Act & Assert - Should not throw, but token may have null issuer
+            // Act & Assert - Should not throw, should use default lifetime
             var token = service.CreateToken("76561198000000000");
             token.Should().NotBeNull();
         }

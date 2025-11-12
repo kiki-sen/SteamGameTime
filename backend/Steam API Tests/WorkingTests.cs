@@ -6,30 +6,27 @@ using Steam_API.Services;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Collections.Generic;
 
 namespace Steam_API_Tests
 {
     public class WorkingJwtTokenServiceTests
     {
-        private readonly Mock<IConfiguration> _mockConfig;
+        private readonly IConfiguration _config;
         private readonly SymmetricSecurityKey _signingKey;
 
         public WorkingJwtTokenServiceTests()
         {
-            _mockConfig = new Mock<IConfiguration>();
-            
-            var mockJwtSection = new Mock<IConfigurationSection>();
-            mockJwtSection
-                .Setup(x => x["Issuer"])
-                .Returns("test-issuer");
+            var configValues = new Dictionary<string, string>
+            {
+                ["Jwt:Issuer"] = "test-issuer",
+                ["Jwt:Audience"] = "test-audience",
+                ["Jwt:AccessTokenLifetimeMinutes"] = "60"
+            };
 
-            mockJwtSection
-                .Setup(x => x["Audience"])
-                .Returns("test-audience");
-
-            _mockConfig
-                .Setup(x => x.GetSection("Jwt"))
-                .Returns(mockJwtSection.Object);
+            _config = new ConfigurationBuilder()
+                .AddInMemoryCollection(configValues!)
+                .Build();
             
             var key = "super-secret-key-that-is-long-enough-for-hmac-sha256-algorithm";
             _signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
@@ -39,7 +36,7 @@ namespace Steam_API_Tests
         public void CreateToken_ValidSteamId_ReturnsValidJwtToken()
         {
             // Arrange
-            var service = new JwtTokenService(_signingKey, _mockConfig.Object);
+            var service = new JwtTokenService(_signingKey, _config);
             var steamId = "76561198000000000";
 
             // Act
@@ -61,10 +58,10 @@ namespace Steam_API_Tests
         }
 
         [Fact]
-        public void CreateToken_TokenExpiresInSevenDays()
+        public void CreateToken_TokenExpiresIn60Minutes()
         {
             // Arrange
-            var service = new JwtTokenService(_signingKey, _mockConfig.Object);
+            var service = new JwtTokenService(_signingKey, _config);
             var steamId = "76561198000000000";
             var beforeCreation = DateTime.UtcNow;
 
@@ -75,7 +72,7 @@ namespace Steam_API_Tests
             var tokenHandler = new JwtSecurityTokenHandler();
             var jwtToken = tokenHandler.ReadJwtToken(token);
             
-            var expectedExpiry = beforeCreation.AddDays(7);
+            var expectedExpiry = beforeCreation.AddMinutes(60);
             var actualExpiry = jwtToken.ValidTo;
             
             // Allow 1 minute tolerance for test execution time
@@ -89,7 +86,7 @@ namespace Steam_API_Tests
         public void CreateToken_DifferentSteamIds_CreatesUniqueTokens(string steamId)
         {
             // Arrange
-            var service = new JwtTokenService(_signingKey, _mockConfig.Object);
+            var service = new JwtTokenService(_signingKey, _config);
 
             // Act
             var token = service.CreateToken(steamId);
@@ -111,15 +108,17 @@ namespace Steam_API_Tests
         {
             // This test verifies the service implements the correct interface
             var mockCache = new Mock<Microsoft.Extensions.Caching.Memory.IMemoryCache>();
-            var mockConfig = new Mock<IConfiguration>();
-            
-            // Setup mock to return a valid API key
-            mockConfig
-                .Setup(x => x["Steam:ApiKey"])
-                .Returns("test-api-key");
+            var configValues = new Dictionary<string, string>
+            {
+                ["Steam:ApiKey"] = "test-api-key"
+            };
+
+            var config = new ConfigurationBuilder()
+                .AddInMemoryCollection(configValues!)
+                .Build();
 
             // Act & Assert - should not throw
-            var service = new FriendsService(mockCache.Object, mockConfig.Object);
+            var service = new FriendsService(mockCache.Object, config);
             (service is IFriendsService).Should().BeTrue();
         }
     }
@@ -130,13 +129,17 @@ namespace Steam_API_Tests
         public void SteamApiClient_CanBeCreated_WithValidConfig()
         {
             // Arrange
-            var mockConfig = new Mock<IConfiguration>();
-            mockConfig
-                .Setup(x => x["Steam:ApiKey"])
-                .Returns("test-api-key");
+            var configValues = new Dictionary<string, string>
+            {
+                ["Steam:ApiKey"] = "test-api-key"
+            };
+
+            var config = new ConfigurationBuilder()
+                .AddInMemoryCollection(configValues!)
+                .Build();
 
             // Act & Assert - should not throw
-            var client = new SteamApiClient(mockConfig.Object);
+            var client = new SteamApiClient(config);
             client.Should().NotBeNull();
         }
     }

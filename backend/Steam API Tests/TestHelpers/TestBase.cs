@@ -1,55 +1,32 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
+using System.Collections.Generic;
 
 namespace Steam_API_Tests.TestHelpers
 {
     public abstract class TestBase
     {
-        protected Mock<IConfiguration> MockConfiguration { get; }
+        protected IConfiguration Configuration { get; }
         protected Mock<ILogger<T>> CreateMockLogger<T>() => new();
 
         protected TestBase()
         {
-            MockConfiguration = new Mock<IConfiguration>();
-            SetupDefaultConfiguration();
-        }
+            var configValues = new Dictionary<string, string>
+            {
+                ["Steam:ApiKey"] = "test-api-key",
+                ["Steam:WebApiKey"] = "test-web-api-key",
+                ["Jwt:Secret"] = "super-secret-key-that-is-at-least-32-characters-long-for-HMAC-SHA256",
+                ["Jwt:Issuer"] = "test-issuer",
+                ["Jwt:Audience"] = "test-audience",
+                ["Jwt:AccessTokenLifetimeMinutes"] = "60",
+                ["Jwt:RefreshTokenLifetimeDays"] = "30",
+                ["Frontend:BaseUrl"] = "http://localhost:4200"
+            };
 
-        private void SetupDefaultConfiguration()
-        {
-            var mockSteamSection = new Mock<IConfigurationSection>();
-            mockSteamSection
-                .Setup(x => x["ApiKey"])
-                .Returns("test-api-key");
-
-            MockConfiguration
-                .Setup(x => x.GetSection("Steam"))
-                .Returns(mockSteamSection.Object);
-
-            MockConfiguration
-                .Setup(x => x["Steam:ApiKey"])
-                .Returns("test-api-key");
-
-            MockConfiguration
-                .Setup(x => x["Steam:WebApiKey"])
-                .Returns("test-web-api-key");
-
-            var mockJwtSection = new Mock<IConfigurationSection>();
-            mockJwtSection
-                .Setup(x => x["Issuer"])
-                .Returns("test-issuer");
-
-            mockJwtSection
-                .Setup(x => x["Audience"])
-                .Returns("test-audience");
-
-            MockConfiguration
-                .Setup(x => x.GetSection("Jwt"))
-                .Returns(mockJwtSection.Object);
-
-            MockConfiguration
-                .Setup(x => x["Frontend:BaseUrl"])
-                .Returns("http://localhost:4200");
+            Configuration = new ConfigurationBuilder()
+                .AddInMemoryCollection(configValues!)
+                .Build();
         }
 
         protected IConfigurationSection CreateMockConfigurationSection(string key, string value)

@@ -3,6 +3,7 @@ import { NgIf, NgClass } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { SteamService } from '../../services/steam.service';
 import { AuthService } from '../../services/auth.service';
+import { AuthApiService } from '../../services/auth-api.service';
 import { ProfileDto } from '../../models/profile.dto';
 
 @Component({
@@ -14,6 +15,7 @@ import { ProfileDto } from '../../models/profile.dto';
 export class ProfileWidget implements OnInit {
   private steam = inject(SteamService);
   private auth = inject(AuthService);
+  private authApi = inject(AuthApiService);
   
   profile?: ProfileDto;
   loading = true;
@@ -71,8 +73,17 @@ export class ProfileWidget implements OnInit {
   }
   
   logout() {
-    this.auth.clear();
-    this.closeDropdown();
+    const refreshToken = this.auth.refreshToken();
+    this.authApi.logout(refreshToken).subscribe({
+      next: () => {
+        this.auth.clear();
+        this.closeDropdown();
+      },
+      error: () => {
+        this.auth.clear();
+        this.closeDropdown();
+      }
+    });
   }
   
   @HostListener('document:click', ['$event'])

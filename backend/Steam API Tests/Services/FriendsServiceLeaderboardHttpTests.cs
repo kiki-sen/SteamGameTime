@@ -17,7 +17,7 @@ namespace Steam_API_Tests.Services
         {
             _httpTest = new HttpTest();
             _cache = new MemoryCache(new MemoryCacheOptions());
-            _service = new FriendsService(_cache, MockConfiguration.Object);
+            _service = new FriendsService(_cache, Configuration);
         }
 
         [Fact]

@@ -116,7 +116,9 @@ public static class AuthenticationExtensions
             })
             .AddSteam(o =>
             {
-                o.ApplicationKey = config["Steam:ApiKey"];
+                var apiKey = config["Steam:ApiKey"];
+                Console.WriteLine($"[Steam Config] ApiKey loaded: {(string.IsNullOrEmpty(apiKey) ? "EMPTY/NULL" : $"{apiKey.Substring(0, Math.Min(8, apiKey.Length))}...")}");
+                o.ApplicationKey = apiKey;
                 o.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                 o.CallbackPath = "/signin-steam"; // explicit default callback
             });

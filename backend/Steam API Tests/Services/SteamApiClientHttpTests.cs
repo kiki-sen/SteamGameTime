@@ -14,7 +14,7 @@ namespace Steam_API_Tests.Services
         public SteamApiClientHttpTests()
         {
             _httpTest = new HttpTest();
-            _client = new SteamApiClient(MockConfiguration.Object);
+            _client = new SteamApiClient(Configuration);
         }
 
         [Fact]

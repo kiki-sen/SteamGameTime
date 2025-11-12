@@ -15,7 +15,7 @@ namespace Steam_API_Tests.Services
         public FriendServiceTests()
         {
             _mockCache = new Mock<IMemoryCache>();
-            _service = new FriendsService(_mockCache.Object, MockConfiguration.Object);
+            _service = new FriendsService(_mockCache.Object, Configuration);
         }
 
         [Fact]
@@ -29,7 +29,7 @@ namespace Steam_API_Tests.Services
         public void Constructor_WithNullCache_ThrowsArgumentNullException()
         {
             // Act & Assert
-            var act = () => new FriendsService(null!, MockConfiguration.Object);
+            var act = () => new FriendsService(null!, Configuration);
             act.Should().Throw<ArgumentNullException>()
                 .Which.ParamName.Should().Be("cache");
         }

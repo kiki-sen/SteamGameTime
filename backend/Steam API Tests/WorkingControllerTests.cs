@@ -8,32 +8,40 @@ using Steam_API.Dto.Output;
 using Steam_API.Services;
 using System.Security.Claims;
 using System.Text;
+using System.Collections.Generic;
 
 namespace Steam_API_Tests
 {
     public class WorkingAuthControllerTests
     {
-        private readonly Mock<IConfiguration> _mockConfig;
+        private readonly IConfiguration _config;
+        private readonly Mock<IRefreshTokenStore> _mockRefreshTokenStore;
         private readonly JwtTokenService _jwtService;
         private readonly SteamAuthController _controller;
 
         public WorkingAuthControllerTests()
         {
-            _mockConfig = new Mock<IConfiguration>();
-            
-            // Setup JWT config
-            var mockJwtSection = new Mock<IConfigurationSection>();
-            mockJwtSection.Setup(x => x["Issuer"]).Returns("test-issuer");
-            mockJwtSection.Setup(x => x["Audience"]).Returns("test-audience");
-            _mockConfig.Setup(x => x.GetSection("Jwt")).Returns(mockJwtSection.Object);
-            _mockConfig.Setup(x => x["Frontend:BaseUrl"]).Returns("http://localhost:4200");
+            var configValues = new Dictionary<string, string>
+            {
+                ["Jwt:Issuer"] = "test-issuer",
+                ["Jwt:Audience"] = "test-audience",
+                ["Jwt:AccessTokenLifetimeMinutes"] = "60",
+                ["Frontend:BaseUrl"] = "http://localhost:4200"
+            };
+
+            _config = new ConfigurationBuilder()
+                .AddInMemoryCollection(configValues!)
+                .Build();
+
+            _mockRefreshTokenStore = new Mock<IRefreshTokenStore>();
 
             // Create real JWT service (since it's not easily mockable)
             var key = "super-secret-key-that-is-long-enough-for-hmac-sha256-algorithm";
             var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
-            _jwtService = new JwtTokenService(signingKey, _mockConfig.Object);
+            _jwtService = new JwtTokenService(signingKey, _config);
             
-            _controller = new SteamAuthController(_jwtService, _mockConfig.Object);
+            _mockRefreshTokenStore.Setup(x => x.CreateRefreshToken(It.IsAny<string>())).Returns("mock-refresh-token");
+            _controller = new SteamAuthController(_jwtService, _mockRefreshTokenStore.Object, _config);
         }
 
         [Fact]
@@ -72,6 +80,7 @@ namespace Steam_API_Tests
             var redirectResult = Assert.IsType<RedirectResult>(result);
             Assert.Contains("http://localhost:4200/auth/callback", redirectResult.Url);
             Assert.Contains("token=", redirectResult.Url);
+            Assert.Contains("refreshToken=", redirectResult.Url);
         }
 
         [Fact]
@@ -129,15 +138,11 @@ namespace Steam_API_Tests
     public class WorkingFriendsControllerTests
     {
         private readonly Mock<IFriendsService> _mockFriendsService;
-        private readonly Mock<IConfiguration> _mockConfig;
         private readonly FriendsController _controller;
 
         public WorkingFriendsControllerTests()
         {
             _mockFriendsService = new Mock<IFriendsService>();
-            _mockConfig = new Mock<IConfiguration>();
-            _mockConfig.Setup(x => x["Steam:WebApiKey"]).Returns("test-web-api-key");
-            
             _controller = new FriendsController(_mockFriendsService.Object);
         }
 

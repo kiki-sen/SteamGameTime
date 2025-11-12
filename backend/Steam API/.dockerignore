@@ -2,6 +2,7 @@
 **/.dockerignore
 **/.env
 **/.git
+**/appsettings.Development.json
 **/.gitignore
 **/.project
 **/.settings

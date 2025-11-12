@@ -13,12 +13,14 @@ namespace Steam_API_Tests.Controllers
     public class AuthControllerTests : TestBase
     {
         private readonly Mock<IJwtTokenService> _mockJwtService;
+        private readonly Mock<IRefreshTokenStore> _mockRefreshTokenStore;
         private readonly SteamAuthController _controller;
 
         public AuthControllerTests()
         {
             _mockJwtService = new Mock<IJwtTokenService>();
-            _controller = new SteamAuthController(_mockJwtService.Object, MockConfiguration.Object);
+            _mockRefreshTokenStore = new Mock<IRefreshTokenStore>();
+            _controller = new SteamAuthController(_mockJwtService.Object, _mockRefreshTokenStore.Object, Configuration);
         }
 
         [Fact]
@@ -68,6 +70,10 @@ namespace Steam_API_Tests.Controllers
             _mockJwtService
                 .Setup(x => x.CreateToken(steamId))
                 .Returns(expectedToken);
+            
+            _mockRefreshTokenStore
+                .Setup(x => x.CreateRefreshToken(steamId))
+                .Returns("mock-refresh-token");
 
             // Act
             var result = _controller.Callback();
@@ -75,6 +81,7 @@ namespace Steam_API_Tests.Controllers
             // Assert
             result.Should().BeOfType<RedirectResult>()
                 .Which.Url.Should().Contain(expectedToken)
+                .And.Contain("refreshToken=")
                 .And.Contain("http://localhost:4200/auth/callback");
         }
 
@@ -179,7 +186,7 @@ namespace Steam_API_Tests.Controllers
             };
 
             // Act
-            var result = await _controller.Logout();
+            var result = await _controller.Logout(null);
 
             // Assert
             result.Should().BeOfType<NoContentResult>();
@@ -214,6 +221,10 @@ namespace Steam_API_Tests.Controllers
             _mockJwtService
                 .Setup(x => x.CreateToken(expectedSteamId))
                 .Returns(expectedToken);
+            
+            _mockRefreshTokenStore
+                .Setup(x => x.CreateRefreshToken(expectedSteamId))
+                .Returns("mock-refresh-token");
 
             // Act
             var result = _controller.Callback();

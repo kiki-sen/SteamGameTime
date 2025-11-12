@@ -1,5 +1,6 @@
 import { Component, computed, inject } from '@angular/core';
 import { AuthService } from '../../services/auth.service';
+import { AuthApiService } from '../../services/auth-api.service';
 import { environment } from '../../../environments/environment';
 import { NgIf } from '@angular/common';
 
@@ -12,6 +13,7 @@ import { NgIf } from '@angular/common';
 })
 export class LoginButtonComponent {
     private auth = inject(AuthService);
+    private authApi = inject(AuthApiService);
     isLoggedIn = computed(() => !!this.auth.token());
     loginUrl = environment.steamLoginUrl;
 
@@ -19,5 +21,11 @@ export class LoginButtonComponent {
         window.location.href = this.loginUrl;
     }    
 
-    logout() { this.auth.clear(); }
+    logout() {
+        const refreshToken = this.auth.refreshToken();
+        this.authApi.logout(refreshToken).subscribe({
+            next: () => this.auth.clear(),
+            error: () => this.auth.clear()
+        });
+    }
 }

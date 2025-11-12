@@ -18,15 +18,18 @@ namespace Steam_API.Services
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub, steamId),
-                new Claim(ClaimTypes.Name, steamId)
+                new Claim(ClaimTypes.Name, steamId),
+                new Claim("steamId", steamId)
             };
+
+            var accessTokenLifetimeMinutes = cfg.GetValue<int>("Jwt:AccessTokenLifetimeMinutes", 60);
 
             var token = new JwtSecurityToken(
             issuer: jwt["Issuer"],
             audience: jwt["Audience"],
             claims: claims,
             notBefore: DateTime.UtcNow,
-            expires: DateTime.UtcNow.AddDays(7),
+            expires: DateTime.UtcNow.AddMinutes(accessTokenLifetimeMinutes),
             signingCredentials: creds);
 
             return new JwtSecurityTokenHandler().WriteToken(token);

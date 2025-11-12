@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Steam_API.Dto.Input;
 using Steam_API.Dto.Output;
 using Steam_API.Services;
 using Swashbuckle.AspNetCore.Annotations;
@@ -14,7 +15,7 @@ namespace Steam_API.Controllers
     /// <summary>Authentication endpoints for Steam OpenID and SPA helpers.</summary>
     [ApiController]
     [Route("auth/steam")]
-    public class SteamAuthController(IJwtTokenService jwtSvc, IConfiguration cfg) : ControllerBase
+    public class SteamAuthController(IJwtTokenService jwtSvc, IRefreshTokenStore refreshTokenStore, IConfiguration cfg) : ControllerBase
     {
         static string? ExtractSteamId(ClaimsPrincipal? user)
         {
@@ -69,8 +70,9 @@ namespace Steam_API.Controllers
             }
 
             var token = jwtSvc.CreateToken(steamId);
+            var refreshToken = refreshTokenStore.CreateRefreshToken(steamId);
             var front = cfg["Frontend:BaseUrl"]?.TrimEnd('/') ?? "http://localhost:4200";
-            return Redirect($"{front}/auth/callback?token={Uri.EscapeDataString(token)}");
+            return Redirect($"{front}/auth/callback?token={Uri.EscapeDataString(token)}&refreshToken={Uri.EscapeDataString(refreshToken)}");
         }
 
         /// <summary>Returns the current authenticated user (JWT required).</summary>
@@ -95,7 +97,7 @@ namespace Steam_API.Controllers
         /// <remarks>Call this after successful Steam login to get a JWT token.</remarks>
         [HttpGet("token")]
         [SwaggerOperation(Summary = "Get JWT token", Description = "Returns JWT token for authenticated Steam user.")]
-        [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(AuthResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public IActionResult GetToken()
         {
@@ -110,19 +112,55 @@ namespace Steam_API.Controllers
             }
 
             var token = jwtSvc.CreateToken(steamId);
-            return Ok(new { token, steamId });
+            var refreshToken = refreshTokenStore.CreateRefreshToken(steamId);
+            return Ok(new AuthResultDto { token = token, refreshToken = refreshToken, steamid = steamId });
+        }
+
+        /// <summary>Refresh access token using refresh token.</summary>
+        [HttpPost("refresh")]
+        [SwaggerOperation(Summary = "Refresh token", Description = "Get new access token using refresh token.")]
+        [ProducesResponseType(typeof(AuthResultDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public IActionResult Refresh([FromBody] RefreshTokenRequest request)
+        {
+            if (string.IsNullOrEmpty(request.RefreshToken))
+            {
+                return Unauthorized("Refresh token is required");
+            }
+
+            var refreshToken = refreshTokenStore.GetRefreshToken(request.RefreshToken);
+            if (refreshToken == null)
+            {
+                return Unauthorized("Invalid or expired refresh token");
+            }
+
+            var newAccessToken = jwtSvc.CreateToken(refreshToken.SteamId);
+            var newRefreshToken = refreshTokenStore.CreateRefreshToken(refreshToken.SteamId);
+
+            refreshTokenStore.RevokeRefreshToken(request.RefreshToken);
+
+            return Ok(new AuthResultDto 
+            { 
+                token = newAccessToken, 
+                refreshToken = newRefreshToken, 
+                steamid = refreshToken.SteamId 
+            });
         }
 
         /// <summary>Logs out the current authenticated user.</summary>
         [HttpPost("logout")]
         [SwaggerOperation(Summary = "Log out", Description = "Logs out the current user")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        public async Task<IActionResult> Logout()
+        public async Task<IActionResult> Logout([FromBody] LogoutRequest? request)
         {
+            if (request?.RefreshToken != null)
+            {
+                refreshTokenStore.RevokeRefreshToken(request.RefreshToken);
+            }
+
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return NoContent();
         }
     }
 }
-
 

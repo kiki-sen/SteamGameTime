@@ -12,7 +12,7 @@ namespace Steam_API_Tests.Services
         public void Constructor_WithValidConfiguration_CreatesInstance()
         {
             // Act
-            var client = new SteamApiClient(MockConfiguration.Object);
+            var client = new SteamApiClient(Configuration);
 
             // Assert
             client.Should().NotBeNull();

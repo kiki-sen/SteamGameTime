@@ -11,6 +11,7 @@ public static class ServiceRegistrationExtensions
         services.AddMemoryCache();
 
         services.AddScoped<IJwtTokenService, JwtTokenService>();
+        services.AddSingleton<IRefreshTokenStore, InMemoryRefreshTokenStore>();
         services.AddScoped<SteamApiClient>();
         services.AddScoped<SteamGameService>();
         services.AddScoped<IFriendsService, FriendsService>();
