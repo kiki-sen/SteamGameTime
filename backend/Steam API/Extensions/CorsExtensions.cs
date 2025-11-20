@@ -4,19 +4,24 @@ public static class CorsExtensions
 {
     private const string PolicyName = "spa";
 
-
-    public static IServiceCollection AddSpaCors(this IServiceCollection services, IConfiguration config)
+    extension(IServiceCollection services)
     {
-        services.AddCors(o => o.AddPolicy(PolicyName, p =>
+        public IServiceCollection AddSpaCors(IConfiguration configuration)
         {
-            var corsOrigins = config.GetSection("Cors:Origins").Get<string[]>() ?? ["http://localhost:4200"];
+            ArgumentNullException.ThrowIfNull(configuration);
+            services.AddCors(o => o.AddPolicy(PolicyName, p =>
+            {
+                var corsOrigins =
+                    configuration.GetSection("Cors:Origins").Get<string[]>()
+                    ?? ["http://localhost:4200"];
 
-            p.WithOrigins(corsOrigins)
-                .AllowCredentials()
-                .AllowAnyHeader()
-                .AllowAnyMethod();
-        }));
+                p.WithOrigins(corsOrigins)
+                 .AllowCredentials()
+                 .AllowAnyHeader()
+                 .AllowAnyMethod();
+            }));
 
-        return services;
+            return services;
+        }
     }
 }

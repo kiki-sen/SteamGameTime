@@ -4,33 +4,36 @@ namespace Steam_API.Extensions;
 
 public static class MvcExtensions
 {
-    public static IServiceCollection AddApiControllers(this IServiceCollection services)
+    extension(IServiceCollection services)
     {
-        services.AddControllers()
-        .ConfigureApiBehaviorOptions(options =>
+        public IServiceCollection AddApiControllers()
         {
-            options.InvalidModelStateResponseFactory = context =>
+            services.AddControllers()
+            .ConfigureApiBehaviorOptions(options =>
             {
-                var problem = new ValidationProblemDetails(context.ModelState)
+                options.InvalidModelStateResponseFactory = context =>
                 {
-                    Status = StatusCodes.Status400BadRequest,
-                    Title = "One or more validation errors occurred.",
-                    Type = "about:blank"
+                    var problem = new ValidationProblemDetails(context.ModelState)
+                    {
+                        Status = StatusCodes.Status400BadRequest,
+                        Title = "One or more validation errors occurred.",
+                        Type = "about:blank"
+                    };
+
+                    problem.Extensions["code"] = "validation.failed";
+                    problem.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
+                    problem.Extensions["path"] = context.HttpContext.Request.Path.Value ?? string.Empty;
+                    problem.Extensions["method"] = context.HttpContext.Request.Method;
+
+                    return new BadRequestObjectResult(problem)
+                    {
+                        ContentTypes = { "application/problem+json" }
+                    };
                 };
+            });
 
-                problem.Extensions["code"] = "validation.failed";
-                problem.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
-                problem.Extensions["path"] = context.HttpContext.Request.Path.Value ?? string.Empty;
-                problem.Extensions["method"] = context.HttpContext.Request.Method;
-
-                return new BadRequestObjectResult(problem)
-                {
-                    ContentTypes = { "application/problem+json" }
-                };
-            };
-        });
-
-        services.AddEndpointsApiExplorer();
-        return services;
+            services.AddEndpointsApiExplorer();
+            return services;
+        }
     }
 }

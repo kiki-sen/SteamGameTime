@@ -8,122 +8,125 @@ namespace Steam_API.Extensions;
 
 public static class AuthenticationExtensions
 {
-    public static IServiceCollection AddAuthenticationAndSteam(this IServiceCollection services, IConfiguration config)
+    extension(IServiceCollection services)
     {
-        var jwt = config.GetSection("Jwt");
-        var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt["SigningKey"]!));
+        public IServiceCollection AddAuthenticationAndSteam(IConfiguration configuration)
+        {
+            var jwt = configuration.GetSection("Jwt");
+            var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt["SigningKey"]!));
 
-        services.AddSingleton(signingKey);
+            services.AddSingleton(signingKey);
 
-        services
-            .AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme; // for external providers (Steam)
-            })
-            .AddJwtBearer(options =>
-            {
-                options.IncludeErrorDetails = true;
-                options.TokenValidationParameters = new TokenValidationParameters
+            services
+                .AddAuthentication(options =>
                 {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = jwt["Issuer"],
-                    ValidAudience = jwt["Audience"],
-                    IssuerSigningKey = signingKey
-                };
-
-                options.Events = new JwtBearerEvents
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme; // for external providers (Steam)
+                })
+                .AddJwtBearer(options =>
                 {
-                    OnChallenge = async context =>
+                    options.IncludeErrorDetails = true;
+                    options.TokenValidationParameters = new TokenValidationParameters
                     {
-                        context.HandleResponse();
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = jwt["Issuer"],
+                        ValidAudience = jwt["Audience"],
+                        IssuerSigningKey = signingKey
+                    };
 
-                        var pd = new ProblemDetails
-                        {
-                            Status = StatusCodes.Status401Unauthorized,
-                            Title = "Unauthorized",
-                            Detail = "A valid Bearer token is required.",
-                            Type = "about:blank",
-                        };
-
-                        pd.Extensions["code"] = "auth.unauthorized";
-                        pd.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
-                        pd.Extensions["path"] = context.Request.Path.Value ?? string.Empty;
-                        pd.Extensions["method"] = context.Request.Method;
-
-                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                        context.Response.ContentType = "application/problem+json";
-                        await context.Response.WriteAsJsonAsync(pd);
-                    },
-                    OnForbidden = async context =>
+                    options.Events = new JwtBearerEvents
                     {
-                        var pd = new ProblemDetails
+                        OnChallenge = async context =>
                         {
-                            Status = StatusCodes.Status403Forbidden,
-                            Title = "Forbidden",
-                            Detail = "You do not have access to this resource.",
-                            Type = "about:blank",
-                        };
+                            context.HandleResponse();
 
-                        pd.Extensions["code"] = "auth.forbidden";
-                        pd.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
-                        pd.Extensions["path"] = context.Request.Path.Value ?? string.Empty;
-                        pd.Extensions["method"] = context.Request.Method;
+                            var pd = new ProblemDetails
+                            {
+                                Status = StatusCodes.Status401Unauthorized,
+                                Title = "Unauthorized",
+                                Detail = "A valid Bearer token is required.",
+                                Type = "about:blank",
+                            };
 
-                        context.Response.StatusCode = StatusCodes.Status403Forbidden;
-                        context.Response.ContentType = "application/problem+json";
-                        await context.Response.WriteAsJsonAsync(pd);
-                    },
-                    OnMessageReceived = ctx =>
-                    {
-                        var auth = ctx.Request.Headers.Authorization.ToString();
-                        var raw = string.Empty;
+                            pd.Extensions["code"] = "auth.unauthorized";
+                            pd.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
+                            pd.Extensions["path"] = context.Request.Path.Value ?? string.Empty;
+                            pd.Extensions["method"] = context.Request.Method;
 
-                        if (auth.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                            context.Response.ContentType = "application/problem+json";
+                            await context.Response.WriteAsJsonAsync(pd);
+                        },
+                        OnForbidden = async context =>
                         {
-                            raw = auth[7..].Trim();
-                            // normalize any accidental quoting/encoding
-                            raw = raw.Trim('"');
-                            raw = System.Net.WebUtility.UrlDecode(raw);
-                            ctx.Token = raw;
+                            var pd = new ProblemDetails
+                            {
+                                Status = StatusCodes.Status403Forbidden,
+                                Title = "Forbidden",
+                                Detail = "You do not have access to this resource.",
+                                Type = "about:blank",
+                            };
+
+                            pd.Extensions["code"] = "auth.forbidden";
+                            pd.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
+                            pd.Extensions["path"] = context.Request.Path.Value ?? string.Empty;
+                            pd.Extensions["method"] = context.Request.Method;
+
+                            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                            context.Response.ContentType = "application/problem+json";
+                            await context.Response.WriteAsJsonAsync(pd);
+                        },
+                        OnMessageReceived = ctx =>
+                        {
+                            var auth = ctx.Request.Headers.Authorization.ToString();
+                            var raw = string.Empty;
+
+                            if (auth.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                            {
+                                raw = auth[7..].Trim();
+                                // normalize any accidental quoting/encoding
+                                raw = raw.Trim('"');
+                                raw = System.Net.WebUtility.UrlDecode(raw);
+                                ctx.Token = raw;
+                            }
+
+                            Console.WriteLine(
+                                $"[OnMessageReceived] scheme={ctx.Scheme?.Name} path={ctx.Request.Path} " +
+                                $"bearer={auth.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)} " +
+                                $"tokenLen={raw?.Length ?? 0} dots={(raw ?? string.Empty).Count(c => c == '.')}");
+
+                            return Task.CompletedTask;
+                        },
+                        OnAuthenticationFailed = ctx =>
+                        {
+                            Console.WriteLine(
+                            $"[OnAuthenticationFailed] scheme={ctx.Scheme?.Name} path={ctx.Request.Path} ex={ctx.Exception}");
+                            return Task.CompletedTask;
                         }
+                    };
+                })
+                .AddCookie(options =>
+                {
+                    options.Cookie.Name = "SteamGameTimeAuth";
+                    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+                    options.Cookie.SameSite = SameSiteMode.None;
+                    options.Cookie.HttpOnly = true;
+                    options.Cookie.Path = "/";
+                })
+                .AddSteam(o =>
+                {
+                    var apiKey = configuration["Steam:ApiKey"];
+                    Console.WriteLine($"[Steam Config] ApiKey loaded: {(string.IsNullOrEmpty(apiKey) ? "EMPTY/NULL" : $"{apiKey.Substring(0, Math.Min(8, apiKey.Length))}...")}");
+                    o.ApplicationKey = apiKey;
+                    o.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                    o.CallbackPath = "/signin-steam"; // explicit default callback
+                });
 
-                        Console.WriteLine(
-                            $"[OnMessageReceived] scheme={ctx.Scheme?.Name} path={ctx.Request.Path} " +
-                            $"bearer={auth.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)} " +
-                            $"tokenLen={raw?.Length ?? 0} dots={(raw ?? string.Empty).Count(c => c == '.')}");
-
-                        return Task.CompletedTask;
-                    },
-                    OnAuthenticationFailed = ctx =>
-                    {
-                        Console.WriteLine(
-                        $"[OnAuthenticationFailed] scheme={ctx.Scheme?.Name} path={ctx.Request.Path} ex={ctx.Exception}");
-                        return Task.CompletedTask;
-                    }
-                };
-            })
-            .AddCookie(options =>
-            {
-                options.Cookie.Name = "SteamGameTimeAuth";
-                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-                options.Cookie.SameSite = SameSiteMode.None;
-                options.Cookie.HttpOnly = true;
-                options.Cookie.Path = "/";
-            })
-            .AddSteam(o =>
-            {
-                var apiKey = config["Steam:ApiKey"];
-                Console.WriteLine($"[Steam Config] ApiKey loaded: {(string.IsNullOrEmpty(apiKey) ? "EMPTY/NULL" : $"{apiKey.Substring(0, Math.Min(8, apiKey.Length))}...")}");
-                o.ApplicationKey = apiKey;
-                o.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                o.CallbackPath = "/signin-steam"; // explicit default callback
-            });
-
-        services.AddAuthorization();
-        return services;
+            services.AddAuthorization();
+            return services;
+        }
     }
 }

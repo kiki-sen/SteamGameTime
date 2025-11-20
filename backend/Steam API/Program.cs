@@ -7,7 +7,7 @@ builder.Logging.AddConsole();
 builder.Services
     .AddSpaCors(builder.Configuration)
     .AddApiControllers()
-    .AddAppServices(builder.Configuration)
+    .AddAppServices()
     .AddAuthenticationAndSteam(builder.Configuration)
     .AddSwaggerDocs();
 

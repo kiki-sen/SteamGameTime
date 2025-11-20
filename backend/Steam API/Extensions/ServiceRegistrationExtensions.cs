@@ -6,20 +6,23 @@ namespace Steam_API.Extensions;
 
 public static class ServiceRegistrationExtensions
 {
-    public static IServiceCollection AddAppServices(this IServiceCollection services, IConfiguration config)
+    extension(IServiceCollection services)
     {
-        services.AddMemoryCache();
+        public IServiceCollection AddAppServices()
+        {
+            services.AddMemoryCache();
 
-        services.AddScoped<IJwtTokenService, JwtTokenService>();
-        services.AddSingleton<IRefreshTokenStore, InMemoryRefreshTokenStore>();
-        services.AddScoped<SteamApiClient>();
-        services.AddScoped<SteamGameService>();
-        services.AddScoped<IFriendsService, FriendsService>();
-        services.AddScoped<ISteamProfileService, SteamProfileService>();
+            services.AddScoped<IJwtTokenService, JwtTokenService>();
+            services.AddSingleton<IRefreshTokenStore, InMemoryRefreshTokenStore>();
+            services.AddScoped<SteamApiClient>();
+            services.AddScoped<SteamGameService>();
+            services.AddScoped<IFriendsService, FriendsService>();
+            services.AddScoped<ISteamProfileService, SteamProfileService>();
 
-        services.AddTransient<GlobalExceptionMiddleware>();
-        services.AddHtmlSanitizer();
+            services.AddTransient<GlobalExceptionMiddleware>();
+            services.AddHtmlSanitizer();
 
-        return services;
+            return services;
+        }
     }
 }
