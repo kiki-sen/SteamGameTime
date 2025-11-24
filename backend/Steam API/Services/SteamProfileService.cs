@@ -1,8 +1,9 @@
 using Flurl;
 using Flurl.Http;
+using Flurl.Http.Configuration;
 using Microsoft.Extensions.Caching.Memory;
-using Steam_API.Dto.Output;
 using Steam_API.Dto.Input;
+using Steam_API.Dto.Output;
 
 namespace Steam_API.Services
 {
@@ -11,9 +12,10 @@ namespace Steam_API.Services
         Task<ProfileDto> GetProfileAsync(string steamId64, CancellationToken ct = default);
     }
 
-    public sealed class SteamProfileService(IMemoryCache cache, IConfiguration cfg) : ISteamProfileService
+    public sealed class SteamProfileService(IMemoryCache cache, IConfiguration cfg, IFlurlClientCache clientCache) : ISteamProfileService
     {
         private readonly string _apiKey = cfg["Steam:ApiKey"] ?? throw new("Steam:ApiKey missing");
+        private readonly IFlurlClient _client = clientCache.Get("steam-api");
 
         public async Task<ProfileDto> GetProfileAsync(string steamId64, CancellationToken ct = default)
         {
@@ -28,7 +30,8 @@ namespace Steam_API.Services
             }
 
             // 1) player summaries (batch-capable, but we only need 1)
-            var summaries = await "https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/"
+            var summaries = await _client
+                .Request("ISteamUser", "GetPlayerSummaries", "v2")
                 .SetQueryParams(new 
                 { 
                     key = _apiKey, 
@@ -39,7 +42,8 @@ namespace Steam_API.Services
             var player = (summaries.Response?.players.FirstOrDefault()) ?? throw new InvalidOperationException("Steam profile not found or not public.");
 
             // 2) level
-            var levelResp = await "https://api.steampowered.com/IPlayerService/GetSteamLevel/v1/"
+            var levelResp = await _client
+                .Request("IPlayerService", "GetSteamLevel", "v1") 
                 .SetQueryParams(new 
                 { 
                     key = _apiKey, 

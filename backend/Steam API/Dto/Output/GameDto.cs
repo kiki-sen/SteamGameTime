@@ -12,7 +12,6 @@ namespace Steam_API.Dto.Output
         /// <summary>Total playtime in minutes.</summary>
         public int playtime_forever { get; set; }
     }
-
 }
 
 

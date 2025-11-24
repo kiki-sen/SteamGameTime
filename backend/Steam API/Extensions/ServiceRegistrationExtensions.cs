@@ -1,4 +1,5 @@
-﻿using Steam_API.Infrastructure;
+﻿using Flurl.Http.Configuration;
+using Steam_API.Infrastructure;
 using Steam_API.Infrastructure.YourAppNamespace.Extensions;
 using Steam_API.Services;
 
@@ -10,6 +11,9 @@ public static class ServiceRegistrationExtensions
     {
         public IServiceCollection AddAppServices()
         {
+            services.AddSingleton<IFlurlClientCache>(_ => new FlurlClientCache()
+                .Add("steam-store", "https://store.steampowered.com")
+                .Add("steam-api", "https://api.steampowered.com"));
             services.AddMemoryCache();
 
             services.AddScoped<IJwtTokenService, JwtTokenService>();
@@ -18,6 +22,7 @@ public static class ServiceRegistrationExtensions
             services.AddScoped<SteamGameService>();
             services.AddScoped<IFriendsService, FriendsService>();
             services.AddScoped<ISteamProfileService, SteamProfileService>();
+            services.AddSingleton<ISteamStoreFrontService, SteamStoreFrontService>();
 
             services.AddTransient<GlobalExceptionMiddleware>();
             services.AddHtmlSanitizer();

@@ -110,6 +110,17 @@
             {{ gameDetails.currentPlayers | number }} online
           </td>
         </tr>
+        
+        <tr *ngIf="gameDetails.platforms && getSupportedPlatforms().length > 0">
+          <td>Platforms</td>
+          <td>
+            <div class="platforms-container">
+              <span *ngIf="gameDetails.platforms.windows" class="platform-badge windows">Windows</span>
+              <span *ngIf="gameDetails.platforms.mac" class="platform-badge mac">Mac</span>
+              <span *ngIf="gameDetails.platforms.linux" class="platform-badge linux">Linux</span>
+            </div>
+          </td>
+        </tr>
       </table>
       
       <!-- Detailed Description -->

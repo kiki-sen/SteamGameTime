@@ -1,5 +1,6 @@
 using Flurl;
 using Flurl.Http;
+using Flurl.Http.Configuration;
 using Microsoft.Extensions.Caching.Memory;
 using Steam_API.Dto.Input;
 using Steam_API.Dto.Output;
@@ -20,18 +21,20 @@ namespace Steam_API.Services
             CancellationToken ct = default);
     }
 
-    public sealed class FriendsService(IMemoryCache cache, IConfiguration cfg) : IFriendsService
+    public sealed class FriendsService(IMemoryCache cache, IConfiguration cfg, IFlurlClientCache clientCache) : IFriendsService
     {
         // throttle outbound calls (be nice to Steam)
         private static readonly SemaphoreSlim Gate = new(8); // 8 concurrent friend calls
         private static readonly SemaphoreSlim LevelGate = new(8); // throttle parallel level calls
         private readonly IMemoryCache _cache = cache ?? throw new ArgumentNullException(nameof(cache));
         private readonly string _apiKey = cfg["Steam:ApiKey"] ?? throw new("Steam:ApiKey missing");
+        private readonly IFlurlClient _client = clientCache.Get("steam-api");
 
         public async Task<FriendsLeaderboardDto> GetLeaderboardAsync(string meSteamId, int? appId = null, CancellationToken ct = default)
         {
             // 1) Friends list
-            var friends = await "https://api.steampowered.com/ISteamUser/GetFriendList/v1/"
+            var friends = await _client
+                .Request("ISteamUser", "GetFriendList", "v1")
                 .SetQueryParams(new 
                 { 
                     key = _apiKey, 
@@ -94,7 +97,8 @@ namespace Steam_API.Services
             foreach (var chunk in ids.Chunk(100))
             {
                 var flat = string.Join(',', chunk);
-                var resp = await "https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/"
+                var resp = await _client
+                    .Request("ISteamUser", "GetPlayerSummaries", "v2")
                     .SetQueryParams(new 
                     { 
                         key = _apiKey, 
@@ -115,7 +119,8 @@ namespace Steam_API.Services
             try
             {
                 // Owned games filtered to appId
-                var owned = await "https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/"
+                var owned = await _client
+                    .Request("IPlayerService", "GetOwnedGames", "v1")
                     .SetQueryParams(new
                     {
                         key = _apiKey,
@@ -128,7 +133,8 @@ namespace Steam_API.Services
                 var minsForever = owned.response?.games?.FirstOrDefault()?.playtime_forever ?? 0;
 
                 // Recently played (for 2 weeks minutes)
-                var recent = await "https://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v1/"
+                var recent = await _client
+                    .Request("IPlayerService", "GetRecentlyPlayedGames", "v1")
                     .SetQueryParams(new 
                     { 
                         key = _apiKey, 
@@ -159,7 +165,8 @@ namespace Steam_API.Services
 
             try
             {
-                var owned = await "https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/"
+                var owned = await _client
+                    .Request("IPlayerService", "GetOwnedGames", "v1")
                     .SetQueryParams(new 
                     { 
                         key = _apiKey, 
@@ -170,7 +177,8 @@ namespace Steam_API.Services
 
                 var minsForever = owned.response?.games?.Sum(g => g.playtime_forever) ?? 0;
 
-                var recent = await "https://api.steampowered.com/IPlayerService/GetRecentlyPlayedGames/v1/"
+                var recent = await _client
+                    .Request("IPlayerService", "GetRecentlyPlayedGames", "v1")
                     .SetQueryParams(new 
                     { 
                         key = _apiKey, 
@@ -195,7 +203,8 @@ namespace Steam_API.Services
         public async Task<FriendsListDto> GetFriendsListAsync(string meSteamId, bool includeSelf = true, CancellationToken ct = default)
         {
             // 1) Pull friend edges (ids + since)
-            var friendsResp = await "https://api.steampowered.com/ISteamUser/GetFriendList/v1/"
+            var friendsResp = await _client
+                .Request("ISteamUser", "GetFriendList", "v1")
                 .SetQueryParams(new 
                 { 
                     key = _apiKey, 
@@ -262,7 +271,8 @@ namespace Steam_API.Services
             await LevelGate.WaitAsync(ct);
             try
             {
-                var resp = await "https://api.steampowered.com/IPlayerService/GetSteamLevel/v1/"
+                var resp = await _client
+                    .Request("IPlayerService", "GetSteamLevel", "v1")
                     .SetQueryParams(new 
                     { 
                         key = _apiKey, 

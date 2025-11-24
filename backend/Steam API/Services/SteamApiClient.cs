@@ -23,13 +23,15 @@ namespace Steam_API.Services
                 .WithTimeout(TimeSpan.FromSeconds(12))
                 .GetJsonAsync<OwnedGamesResponse>();
 
-            return data.response.games?.Select(g => new GameDto
+            var games = data.response.games?.Select(g => new GameDto
             {
                 appid = g.appid,
                 name = g.name ?? string.Empty,
                 img_icon_url = g.img_icon_url,
                 playtime_forever = g.playtime_forever
             }).ToList() ?? [];
+
+            return games;
         }
 
         private async Task<RecentlyPlayedResponse> GetRecentlyPlayedAsync(string steamId)

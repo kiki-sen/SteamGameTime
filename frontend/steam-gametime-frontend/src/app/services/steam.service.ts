@@ -7,6 +7,7 @@ import { GameDetailsDto } from '../models/game-details.dto';
 import { PageResultDto } from '../models/pageresult.dto';
 import { FriendsLeaderboardDto } from '../models/friends-leaderboard.dto';
 import { FriendsListDto } from '../models/friends-list.dto';
+import { PlatformsDto } from '../models/platforms.dto';
 import { Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
@@ -31,6 +32,10 @@ export class SteamService {
 
     getGameDetails(appId: number): Observable<GameDetailsDto> {
         return this.http.get<GameDetailsDto>(`${this.base}/steam/${appId}/gamedetails`);
+    }
+
+    getPlatforms(appId: number): Observable<PlatformsDto> {
+        return this.http.get<PlatformsDto>(`${this.base}/steam/${appId}/platforms`);
     }
 
     getFriendsLeaderboard(appId?: number): Observable<FriendsLeaderboardDto> {

@@ -1,8 +1,9 @@
 using Flurl;
 using Flurl.Http;
+using Flurl.Http.Configuration;
 using Ganss.Xss;
-using Steam_API.Dto.Output;
 using Steam_API.Dto.Input;
+using Steam_API.Dto.Output;
 using System.Net;
 using System.Text.Json;
 
@@ -13,67 +14,37 @@ namespace Steam_API.Services
         Task<GameDetailsDto> GetGameDetailsAsync(string steamId64, int appId, bool includeGlobal = false, string lang = "english");
     }
 
-    public sealed class SteamGameService(IConfiguration cfg, HtmlSanitizer sanitizer, ILogger<SteamGameService> logger) : ISteamGameService
+    public sealed class SteamGameService(IConfiguration cfg, HtmlSanitizer sanitizer, ILogger<SteamGameService> logger, IFlurlClientCache clientCache, ISteamStoreFrontService steamappDetailsFrontService) : ISteamGameService
     {
         private readonly string _apiKey = cfg["Steam:ApiKey"] ?? throw new("Steam:ApiKey missing");
+        private readonly IFlurlClient _client = clientCache.Get("steam-api");
 
         public string? Sanitize(string? html) => string.IsNullOrWhiteSpace(html) ? null : sanitizer.Sanitize(html);
 
         public async Task<GameDetailsDto> GetGameDetailsAsync(string steamId64, int appId, bool includeGlobal = false, string lang = "english")
         {
             // 1) Schema (achievement definitions + icons)
-            var schemaTask = "https://api.steampowered.com/ISteamUserStats/GetSchemaForGame/v2/"
-                .SetQueryParams(new 
-                { 
-                    key = _apiKey, 
-                    appid = appId, 
-                    l = lang 
-                })
-                .GetJsonAsync<SchemaForGameResponse>();
+            Task<SchemaForGameResponse> schemaTask = GetSchemaForGame(appId, lang);
 
             // 2) User achievements (per-app)
             var userAchTask = TryGetPlayerAchievementsAsync(steamId64, appId, lang);
 
-            // 3) Store appdetails (header image + name)
-            var storeTask = "https://store.steampowered.com/api/appdetails"
-                .SetQueryParams(new 
-                { 
-                    appids = appId 
-                })
-                .GetJsonAsync<Dictionary<string, StoreAppDetailsWrapper>>();
+            // 3) appDetails appdetails (header image + name)
+            var appDetails = await steamappDetailsFrontService.GetAppDetails(appId);
 
             // 4) Optional global achievements %
             var hasAchievements = (schemaTask.Result.Game?.AvailableGameStats?.Achievements?.Count ?? 0) > 0;
             Task<GlobalPercentResponse?> globalTask = (includeGlobal && hasAchievements)
-                ? GetGlobalAsync(appId)                        
+                ? GetGlobalAsync(appId)
                 : Task.FromResult<GlobalPercentResponse?>(null);
 
             // 5) CCU (current players)
-            Task<CurrentPlayersResponse?> ccuTask =
-                "https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/"
-                    .SetQueryParams(new 
-                    { 
-                        appid = appId 
-                    })
-                    .AllowAnyHttpStatus()
-                    .GetAsync()
-                    .ContinueWith(async t =>
-                    {
-                        var resp = t.Result;
-                        if (resp.ResponseMessage.IsSuccessStatusCode)
-                        {
-                            return await resp.GetJsonAsync<CurrentPlayersResponse>();
-                        }
+            Task<CurrentPlayersResponse?> ccuTask = GetCurrentUsers(appId);
 
-                        // treat 4xx/5xx as "no data"
-                        return null;
-                    }).Unwrap();
-
-            await Task.WhenAll(schemaTask, userAchTask, storeTask, globalTask);
+            await Task.WhenAll(schemaTask, userAchTask, globalTask);
 
             var schema = schemaTask.Result.Game?.AvailableGameStats?.Achievements ?? [];
             var userAch = userAchTask?.Result?.PlayerStats?.Achievements ?? [];
-            var store = storeTask.Result.TryGetValue(appId.ToString(), out var wrap) && wrap.Success ? wrap.Data : null;
             var global = globalTask
                 .Result?
                 .Achievementpercentages?
@@ -87,21 +58,21 @@ namespace Steam_API.Services
 
             // Merge schema (icons/labels) + user state (+ optional global %)
             var achievements = schema.Select(s =>
+            {
+                userMap.TryGetValue(s.Name, out var state);
+                global.TryGetValue(s.Name, out var gp);
+                return new AchievementDto
                 {
-                    userMap.TryGetValue(s.Name, out var state);
-                    global.TryGetValue(s.Name, out var gp);
-                    return new AchievementDto
-                    {
-                        ApiName = s.Name,
-                        DisplayName = s.DisplayName,
-                        Description = s.Description, // may be null for hidden until earned
-                        Achieved = state.Item1,
-                        UnlockTime = state.Item2.HasValue ? DateTimeOffset.FromUnixTimeSeconds(state.Item2.Value) : null,
-                        Icon = s.Icon,
-                        IconGray = s.IconGray,
-                        GlobalPercent = gp
-                    };
-                })
+                    ApiName = s.Name,
+                    DisplayName = s.DisplayName,
+                    Description = s.Description, // may be null for hidden until earned
+                    Achieved = state.Item1,
+                    UnlockTime = state.Item2.HasValue ? DateTimeOffset.FromUnixTimeSeconds(state.Item2.Value) : null,
+                    Icon = s.Icon,
+                    IconGray = s.IconGray,
+                    GlobalPercent = gp
+                };
+            })
                 .OrderByDescending(a => a.Achieved)
                 .ThenBy(a => a.DisplayName)
                 .ToList();
@@ -109,23 +80,67 @@ namespace Steam_API.Services
             return new GameDetailsDto
             {
                 AppId = appId,
-                Name = store?.Name ?? schemaTask.Result.Game?.GameName,
-                HeaderImage = store?.HeaderImage,
-                ShortDescription = store?.ShortDescription,
-                DetailedDescription = Sanitize(store?.DetailedDescription),
-                AboutTheGame = Sanitize(store?.AboutTheGame),
-                Website = store?.Website,
-                Developers = store?.Developers,
-                Publishers = store?.Publishers,
-                Genres = store?.Genres?.Select(g => g.Description).ToArray(),
+                Name = appDetails?.Name ?? schemaTask.Result.Game?.GameName,
+                HeaderImage = appDetails?.HeaderImage,
+                ShortDescription = appDetails?.ShortDescription,
+                DetailedDescription = Sanitize(appDetails?.DetailedDescription),
+                AboutTheGame = Sanitize(appDetails?.AboutTheGame),
+                Website = appDetails?.Website,
+                Developers = appDetails?.Developers,
+                Publishers = appDetails?.Publishers,
+                Genres = appDetails?.Genres?.Select(g => g.Description).ToArray(),
                 CurrentPlayers = ccu,
-                Achievements = achievements
+                Achievements = achievements,
+                Platforms = appDetails?.Platforms != null ? new Dto.Output.PlatformsDto()
+                {
+                    appId = appId,
+                    linux = appDetails.Platforms.linux,
+                    windows = appDetails.Platforms.windows,
+                    mac = appDetails.Platforms.mac
+                } : null,
             };
+        }
+
+        private Task<CurrentPlayersResponse?> GetCurrentUsers(int appId)
+        {
+            return _client
+                .Request("ISteamUserStats", "GetNumberOfCurrentPlayers", "v1")
+                .SetQueryParams(new
+                {
+                    appid = appId
+                })
+                .AllowAnyHttpStatus()
+                .GetAsync()
+                .ContinueWith(async t =>
+                {
+                    var resp = t.Result;
+                    if (resp.ResponseMessage.IsSuccessStatusCode)
+                    {
+                        return await resp.GetJsonAsync<CurrentPlayersResponse>();
+                    }
+
+                    // treat 4xx/5xx as "no data"
+                    return null;
+                }).Unwrap();
+        }
+
+        private Task<SchemaForGameResponse> GetSchemaForGame(int appId, string lang)
+        {
+            return _client
+                .Request("ISteamUserStats", "GetSchemaForGame", "v2")
+                .SetQueryParams(new
+                {
+                    key = _apiKey,
+                    appid = appId,
+                    l = lang
+                })
+                .GetJsonAsync<SchemaForGameResponse>();
         }
 
         private async Task<PlayerAchievementsResponse?> TryGetPlayerAchievementsAsync(string steamId64, int appId, string lang = "english")
         {
-            var req = "https://api.steampowered.com/ISteamUserStats/GetPlayerAchievements/v1/"
+            var playerAchievementsRequest = _client
+                .Request("ISteamUserStats", "GetPlayerAchievements", "v1")
                 .SetQueryParams(new 
                 { 
                     key = _apiKey, 
@@ -134,18 +149,20 @@ namespace Steam_API.Services
                     l = lang 
                 });
 
-            var resp = await req.AllowAnyHttpStatus().GetAsync();
+            var response = await playerAchievementsRequest.AllowAnyHttpStatus().GetAsync();
 
             // Success → parse to typed response
-            if (resp.ResponseMessage.IsSuccessStatusCode)
-                return await resp.GetJsonAsync<PlayerAchievementsResponse>();
+            if (response.ResponseMessage.IsSuccessStatusCode)
+            {
+                return await response.GetJsonAsync<PlayerAchievementsResponse>();
+            }
 
             // 400/401/403 happen for private profiles or no stats
-            if (resp.StatusCode is (int)HttpStatusCode.BadRequest
+            if (response.StatusCode is (int)HttpStatusCode.BadRequest
                                or (int)HttpStatusCode.Unauthorized
                                or (int)HttpStatusCode.Forbidden)
             {
-                var text = await resp.GetStringAsync();
+                var text = await response.GetStringAsync();
 
                 // Try to read Steam's error to decide what to do
                 try
@@ -163,13 +180,14 @@ namespace Steam_API.Services
             }
 
             // Other statuses → bubble up so you can see them during dev/monitoring
-            resp.ResponseMessage.EnsureSuccessStatusCode();
+            response.ResponseMessage.EnsureSuccessStatusCode();
             return null;
         }
 
-        static async Task<GlobalPercentResponse?> GetGlobalAsync(int appId)
+        private async Task<GlobalPercentResponse?> GetGlobalAsync(int appId)
         {
-            var resp = await "https://api.steampowered.com/ISteamUserStats/GetGlobalAchievementPercentagesForApp/v0002/"
+            var globalAchievementPerdcentages = await _client
+                .Request("ISteamUserStats", "GetGlobalAchievementPercentagesForApp", "v0002")
                 .SetQueryParams(new 
                 { 
                     gameid = appId 
@@ -177,17 +195,19 @@ namespace Steam_API.Services
                 .AllowAnyHttpStatus()
                 .GetAsync();
 
-            if (resp.ResponseMessage.IsSuccessStatusCode)
-                return await resp.GetJsonAsync<GlobalPercentResponse>(); // non-null on success
+            if (globalAchievementPerdcentages.ResponseMessage.IsSuccessStatusCode)
+            {
+                return await globalAchievementPerdcentages.GetJsonAsync<GlobalPercentResponse>(); // non-null on success
+            }
 
             // treat these as "no data" and proceed
-            if (resp.StatusCode is (int)HttpStatusCode.Unauthorized
+            if (globalAchievementPerdcentages.StatusCode is (int)HttpStatusCode.Unauthorized
                                or (int)HttpStatusCode.Forbidden
                                or (int)HttpStatusCode.NotFound)
                 return null;
 
             // otherwise bubble up (so you can see unexpected failures)
-            resp.ResponseMessage.EnsureSuccessStatusCode();
+            globalAchievementPerdcentages.ResponseMessage.EnsureSuccessStatusCode();
             return null;
         }
     }

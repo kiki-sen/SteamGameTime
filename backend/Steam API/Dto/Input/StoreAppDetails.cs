@@ -16,6 +16,7 @@ namespace Steam_API.Dto.Input
         [JsonPropertyName("publishers")] public string[]? Publishers { get; set; }
 
         [JsonPropertyName("genres")] public List<StoreGenre>? Genres { get; set; }
+        [JsonPropertyName("platforms")] public PlatformsDto? Platforms { get; set; }
     }
 }
 

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Steam_API.Contracts;
+using Steam_API.Dto.Input;
 using Steam_API.Dto.Output;
 using Steam_API.Services;
 using Swashbuckle.AspNetCore.Annotations;
@@ -11,7 +12,7 @@ namespace Steam_API.Controllers
     /// <summary>Steam data endpoints (require JWT).</summary>
     [ApiController]
     [Route("api/steam")]
-    public class SteamController(SteamApiClient client, SteamGameService steamGameService) : ControllerBase
+    public class SteamController(SteamApiClient client, SteamGameService steamGameService, ISteamStoreFrontService steamStoreFrontService) : ControllerBase
     {
         private static string? BuildSteamIconUrl(int appId, string? imgIconHash)
             => string.IsNullOrWhiteSpace(imgIconHash)
@@ -136,6 +137,57 @@ namespace Steam_API.Controllers
                     title: "Forbidden",
                     detail: "Achievements/stats are private or unavailable for this game/user.",
                     statusCode: StatusCodes.Status403Forbidden);
+            }
+            catch (Exception ex)
+            {
+                return Problem(
+                    title: "Unexpected error",
+                    detail: ex.Message,
+                    statusCode: StatusCodes.Status500InternalServerError);
+            }
+        }
+
+        /// <summary>
+        /// Gets platform support (Windows, macOS, Linux) for a given Steam app id.
+        /// </summary>
+        /// <param name="appId">Steam app id (e.g. 570 for Dota 2).</param>
+        /// <param name="ct">Cancellation token</param>
+        /// <returns>Platform flags for the game.</returns>
+        [HttpGet("{appId:int}/platforms")]
+        [Produces("application/json")]
+        [ProducesResponseType(typeof(Dto.Output.PlatformsDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status429TooManyRequests)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        [SwaggerOperation(
+            Summary = "Get platform support for a game",
+            Description = "Returns whether the game is available on Windows, macOS and Linux based on Steam Store data."
+        )]
+        public async Task<ActionResult<Dto.Output.PlatformsDto>> GetGamePlatforms([FromRoute] int appId, CancellationToken ct)
+        {
+            try
+            {
+                var platforms = await steamStoreFrontService.GetPlatformsAsync(appId, ct);
+
+                if (platforms is null)
+                {
+                    return NotFound(new ProblemDetails
+                    {
+                        Title = "Game not found in Steam store",
+                        Detail = $"No platform information available for appid {appId}.",
+                        Status = StatusCodes.Status404NotFound,
+                        Type = "https://httpstatuses.com/404"
+                    });
+                }
+
+                return Ok(platforms);
+            }
+            catch (FlurlHttpException ex) when ((int?)ex.Call?.Response?.StatusCode is 401 or 403)
+            {
+                // Private profile/game stats or access denied by Steam for this user/game
+                return Problem(
+                    title: "Too many requests",
+                    detail: "Steam ratelimit reached. Too many requests.",
+                    statusCode: StatusCodes.Status429TooManyRequests);
             }
             catch (Exception ex)
             {

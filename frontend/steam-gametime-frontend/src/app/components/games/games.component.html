@@ -14,12 +14,24 @@
       <option value="name">Name A-Z</option>
       <option value="name:desc">Name Z-A</option>
     </select>
+    <label class="linux-filter">
+      <input 
+        type="checkbox" 
+        [(ngModel)]="linuxOnly" 
+        (change)="onLinuxFilterChange()" 
+      />
+      <span class="filter-label">Linux Only</span>
+    </label>
+  </div>
+
+  <div *ngIf="linuxOnly && isProcessingQueue" class="loading-progress">
+    Loading platform information... {{ loadingProgress }} / {{ totalToLoad }}
   </div>
 
   <div *ngIf="busy" class="loading">Loading your games...</div>
 
   <div #grid class="games-grid">
-    <div class="game-card" *ngFor="let g of page?.items" (click)="navigateToGame(g.appId)">
+    <div class="game-card" *ngFor="let g of getFilteredGames()" (click)="navigateToGame(g.appId)">
       <img 
         *ngIf="getImageUrl(g); else noImg" 
         [src]="getImageUrl(g)" 
@@ -39,10 +51,16 @@
           <span class="hour-badge recent" *ngIf="g.hours2Weeks > 0">{{ g.hours2Weeks | number:'1.0-1' }}h</span>
         </div>
       </div>
+      
+      <div class="platform-indicators">
+        <span *ngIf="hasLinuxSupport(g.appId)" class="linux-badge">Linux</span>
+        <span *ngIf="isLoadingPlatform(g.appId)" class="loading-badge">...</span>
+      </div>
     </div>
   </div>
 
   <div class="game-count" *ngIf="page">
-    {{ page.total }} games in library
+    <span *ngIf="!linuxOnly">{{ page.total }} games in library</span>
+    <span *ngIf="linuxOnly">{{ getFilteredGames().length }} Linux games (out of {{ page.total }} total)</span>
   </div>
 </div>

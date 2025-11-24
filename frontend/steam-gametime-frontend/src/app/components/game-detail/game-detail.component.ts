@@ -138,7 +138,18 @@ export class GameDetailComponent implements OnInit, AfterViewInit {
              this.gameDetails?.publishers?.length || 
              this.gameDetails?.genres?.length || 
              this.gameDetails?.website ||
-             this.gameDetails?.currentPlayers);
+             this.gameDetails?.currentPlayers ||
+             this.gameDetails?.platforms);
+  }
+
+  getSupportedPlatforms(): string[] {
+    const platforms: string[] = [];
+    if (this.gameDetails?.platforms) {
+      if (this.gameDetails.platforms.windows) platforms.push('Windows');
+      if (this.gameDetails.platforms.mac) platforms.push('Mac');
+      if (this.gameDetails.platforms.linux) platforms.push('Linux');
+    }
+    return platforms;
   }
 
   // Get Steam library hero image (wider format, better for full-width display)

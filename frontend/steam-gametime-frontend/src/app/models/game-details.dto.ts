@@ -1,3 +1,5 @@
+import { PlatformsDto } from './platforms.dto';
+
 export interface GameDetailsDto {
   appId: number;
   name?: string;
@@ -11,6 +13,8 @@ export interface GameDetailsDto {
   genres?: string[];
   currentPlayers?: number;
   achievements: AchievementDto[];
+  platforms?: PlatformsDto;
+  supportsLinux?: boolean;
 }
 
 export interface AchievementDto {

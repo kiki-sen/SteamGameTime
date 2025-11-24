@@ -363,6 +363,41 @@ a:hover {
   background: #66c0f4;
 }
 
+/* Platform badges */
+.platforms-container {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.platform-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.platform-badge.windows {
+  background: rgba(102, 192, 244, 0.2);
+  border: 1px solid #66c0f4;
+  color: #66c0f4;
+}
+
+.platform-badge.mac {
+  background: rgba(143, 152, 160, 0.2);
+  border: 1px solid #8f98a0;
+  color: #c7d5e0;
+}
+
+.platform-badge.linux {
+  background: rgba(255, 149, 0, 0.2);
+  border: 1px solid #ff9500;
+  color: #ffb84d;
+}
+
 @media (max-width: 768px) {
   .game-title {
     font-size: 2rem;

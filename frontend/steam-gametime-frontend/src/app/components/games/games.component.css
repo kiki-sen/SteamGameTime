@@ -106,6 +106,38 @@
   font-size: 0.75rem;
 }
 
+/* Platform indicators */
+.platform-indicators {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-end;
+}
+
+.linux-badge {
+  background: rgba(255, 149, 0, 0.9);
+  color: #1e2328;
+  padding: 3px 8px;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.loading-badge {
+  background: rgba(76, 107, 131, 0.8);
+  color: #c7d5e0;
+  padding: 3px 8px;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
 /* Loading message */
 .loading {
   text-align: center;
@@ -149,6 +181,50 @@
   outline: none;
   border-color: #66c0f4;
   box-shadow: 0 0 8px rgba(102, 192, 244, 0.3);
+}
+
+/* Linux filter checkbox */
+.linux-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #c7d5e0;
+  cursor: pointer;
+  user-select: none;
+  padding: 8px 12px;
+  background: rgba(27, 40, 56, 0.8);
+  border: 1px solid #4c6b83;
+  border-radius: 3px;
+  transition: all 0.2s ease;
+}
+
+.linux-filter:hover {
+  border-color: #ff9500;
+  background: rgba(255, 149, 0, 0.1);
+}
+
+.linux-filter input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #ff9500;
+}
+
+.filter-label {
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+/* Loading progress */
+.loading-progress {
+  text-align: center;
+  color: #ff9500;
+  font-size: 0.9rem;
+  padding: 0.5rem;
+  background: rgba(255, 149, 0, 0.1);
+  border: 1px solid rgba(255, 149, 0, 0.3);
+  border-radius: 4px;
+  margin-bottom: 1rem;
 }
 
 /* Pagination styling */

@@ -14,6 +14,8 @@ namespace Steam_API.Dto.Output
         public string?[]? Genres { get; init; }
         public int? CurrentPlayers { get; init; }
         public IReadOnlyList<AchievementDto> Achievements { get; init; } = [];
+        public PlatformsDto? Platforms { get; set; }
+        public bool SupportsLinux => Platforms?.linux == true;
     }
 }
 
