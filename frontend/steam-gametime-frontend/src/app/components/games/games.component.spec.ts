@@ -4,6 +4,7 @@ import { of, throwError } from 'rxjs';
 import { GamesComponent } from './games.component';
 import { SteamService } from '../../services/steam.service';
 import { GameHoursDto } from '../../models/game-hours.dto';
+import { PlatformsDto } from '../../models/platforms.dto';
 
 describe('GamesComponent', () => {
   let component: GamesComponent;
@@ -12,7 +13,7 @@ describe('GamesComponent', () => {
   let mockRouter: jasmine.SpyObj<Router>;
 
   beforeEach(async () => {
-    mockSteamService = jasmine.createSpyObj('SteamService', ['getGames']);
+    mockSteamService = jasmine.createSpyObj('SteamService', ['getGames', 'getPlatforms']);
     mockRouter = jasmine.createSpyObj('Router', ['navigate']);
 
     await TestBed.configureTestingModule({
@@ -108,5 +109,99 @@ describe('GamesComponent', () => {
     // After subscription completes
     expect(component.busy).toBe(false);
     expect(component.page).toEqual(mockGames);
+  });
+
+  it('should check Linux support correctly', () => {
+    const appId = 12345;
+    component.linuxSupportCache.set(appId, true);
+
+    expect(component.hasLinuxSupport(appId)).toBe(true);
+    expect(component.hasLinuxSupport(99999)).toBe(false);
+  });
+
+  it('should track loading platforms', () => {
+    const appId = 12345;
+    component.loadingPlatforms.add(appId);
+
+    expect(component.isLoadingPlatform(appId)).toBe(true);
+    expect(component.isLoadingPlatform(99999)).toBe(false);
+  });
+
+  it('should return all games when linuxOnly is false', () => {
+    const mockGames: GameHoursDto[] = [
+      { appId: 1, name: 'Game 1', hoursTotal: 10, hours2Weeks: 1 },
+      { appId: 2, name: 'Game 2', hoursTotal: 20, hours2Weeks: 2 }
+    ];
+    component.page = { items: mockGames, total: 2, page: 1, pageSize: 10 };
+    component.linuxOnly = false;
+
+    const filtered = component.getFilteredGames();
+
+    expect(filtered.length).toBe(2);
+  });
+
+  it('should filter games when linuxOnly is true', () => {
+    const mockGames: GameHoursDto[] = [
+      { appId: 1, name: 'Linux Game', hoursTotal: 10, hours2Weeks: 1 },
+      { appId: 2, name: 'Windows Game', hoursTotal: 20, hours2Weeks: 2 },
+      { appId: 3, name: 'Another Linux Game', hoursTotal: 15, hours2Weeks: 0 }
+    ];
+    component.page = { items: mockGames, total: 3, page: 1, pageSize: 10 };
+    component.linuxOnly = true;
+    component.linuxSupportCache.set(1, true);
+    component.linuxSupportCache.set(2, false);
+    component.linuxSupportCache.set(3, true);
+
+    const filtered = component.getFilteredGames();
+
+    expect(filtered.length).toBe(2);
+    expect(filtered[0].appId).toBe(1);
+    expect(filtered[1].appId).toBe(3);
+  });
+
+  it('should load platform data when filter changes', () => {
+    const mockGames: GameHoursDto[] = [
+      { appId: 1, name: 'Game 1', hoursTotal: 10, hours2Weeks: 1 }
+    ];
+    component.page = { items: mockGames, total: 1, page: 1, pageSize: 10 };
+    component.linuxOnly = true;
+
+    spyOn(component, 'loadPlatformDataForGames');
+
+    component.onLinuxFilterChange();
+
+    expect(component.loadPlatformDataForGames).toHaveBeenCalled();
+  });
+
+  it('should process platform data queue', (done) => {
+    const mockPlatforms = { appId: 1, windows: true, mac: false, linux: true };
+    mockSteamService.getPlatforms.and.returnValue(of(mockPlatforms));
+    
+    component.platformLoadQueue = [1];
+    component.isProcessingQueue = false;
+
+    component['processQueue']();
+
+    setTimeout(() => {
+      expect(component.linuxSupportCache.get(1)).toBe(true);
+      expect(component.loadingPlatforms.has(1)).toBe(false);
+      done();
+    }, 200);
+  });
+
+  it('should handle platform loading error gracefully', (done) => {
+    mockSteamService.getPlatforms.and.returnValue(throwError(() => new Error('API Error')));
+    spyOn(console, 'error');
+    
+    component.platformLoadQueue = [1];
+    component.isProcessingQueue = false;
+
+    component['processQueue']();
+
+    setTimeout(() => {
+      expect(component.linuxSupportCache.get(1)).toBe(false);
+      expect(console.error).toHaveBeenCalled();
+      done();
+    }, 600);
   });
 });

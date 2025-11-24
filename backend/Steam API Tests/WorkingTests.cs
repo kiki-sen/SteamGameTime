@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Flurl.Http.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Moq;
@@ -108,6 +109,7 @@ namespace Steam_API_Tests
         {
             // This test verifies the service implements the correct interface
             var mockCache = new Mock<Microsoft.Extensions.Caching.Memory.IMemoryCache>();
+            var mockClientCache = new Mock<IFlurlClientCache>();
             var configValues = new Dictionary<string, string>
             {
                 ["Steam:ApiKey"] = "test-api-key"
@@ -118,7 +120,7 @@ namespace Steam_API_Tests
                 .Build();
 
             // Act & Assert - should not throw
-            var service = new FriendsService(mockCache.Object, config);
+            var service = new FriendsService(mockCache.Object, config, mockClientCache.Object);
             (service is IFriendsService).Should().BeTrue();
         }
     }

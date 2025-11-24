@@ -5,6 +5,7 @@ import { of, throwError } from 'rxjs';
 import { GameDetailComponent } from './game-detail.component';
 import { SteamService } from '../../services/steam.service';
 import { GameDetailsDto, AchievementDto } from '../../models/game-details.dto';
+import { PlatformsDto } from '../../models/platforms.dto';
 
 describe('GameDetailComponent', () => {
   let component: GameDetailComponent;
@@ -162,5 +163,44 @@ describe('GameDetailComponent', () => {
     const imageUrl = component.getLibraryHeroImage();
 
     expect(imageUrl).toBeNull();
+  });
+
+  it('should get supported platforms correctly', () => {
+    component.gameDetails = {
+      ...mockGameDetails,
+      platforms: { appId: 12345, windows: true, mac: false, linux: true }
+    };
+
+    const platforms = component.getSupportedPlatforms();
+
+    expect(platforms).toEqual(['Windows', 'Linux']);
+  });
+
+  it('should return empty array when no platforms', () => {
+    component.gameDetails = mockGameDetails;
+
+    const platforms = component.getSupportedPlatforms();
+
+    expect(platforms).toEqual([]);
+  });
+
+  it('should include platforms in hasGameInfo check', () => {
+    component.gameDetails = {
+      ...mockGameDetails,
+      platforms: { appId: 12345, windows: true, mac: false, linux: false }
+    };
+
+    expect(component.hasGameInfo()).toBe(true);
+  });
+
+  it('should get all three platforms when all are supported', () => {
+    component.gameDetails = {
+      ...mockGameDetails,
+      platforms: { appId: 12345, windows: true, mac: true, linux: true }
+    };
+
+    const platforms = component.getSupportedPlatforms();
+
+    expect(platforms).toEqual(['Windows', 'Mac', 'Linux']);
   });
 });

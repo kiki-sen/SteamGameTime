@@ -1,3 +1,4 @@
+using Flurl.Http.Configuration;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Moq;
@@ -10,12 +11,14 @@ namespace Steam_API_Tests.Services
     public class FriendServiceTests : TestBase
     {
         private readonly Mock<IMemoryCache> _mockCache;
+        private readonly Mock<IFlurlClientCache> _mockClientCache;
         private readonly FriendsService _service;
 
         public FriendServiceTests()
         {
             _mockCache = new Mock<IMemoryCache>();
-            _service = new FriendsService(_mockCache.Object, Configuration);
+            _mockClientCache = new Mock<IFlurlClientCache>();
+            _service = new FriendsService(_mockCache.Object, Configuration, _mockClientCache.Object);
         }
 
         [Fact]
@@ -29,7 +32,7 @@ namespace Steam_API_Tests.Services
         public void Constructor_WithNullCache_ThrowsArgumentNullException()
         {
             // Act & Assert
-            var act = () => new FriendsService(null!, Configuration);
+            var act = () => new FriendsService(null!, Configuration, _mockClientCache.Object);
             act.Should().Throw<ArgumentNullException>()
                 .Which.ParamName.Should().Be("cache");
         }
@@ -45,7 +48,7 @@ namespace Steam_API_Tests.Services
             mockConfig.Setup(x => x[It.IsAny<string>()]).Returns((string?)null);
 
             // Act & Assert
-            var act = () => new FriendsService(_mockCache.Object, mockConfig.Object);
+            var act = () => new FriendsService(_mockCache.Object, mockConfig.Object, _mockClientCache.Object);
             act.Should().Throw<Exception>()
                 .WithMessage("Steam:ApiKey missing");
         }

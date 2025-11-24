@@ -1,5 +1,8 @@
+using Flurl.Http;
 using Flurl.Http.Testing;
+using Flurl.Http.Configuration;
 using Microsoft.Extensions.Caching.Memory;
+using Moq;
 using Steam_API.Dto.Input;
 using Steam_API.Services;
 using Steam_API_Tests.TestHelpers;
@@ -12,12 +15,16 @@ namespace Steam_API_Tests.Services
         private readonly HttpTest _httpTest;
         private readonly FriendsService _service;
         private readonly IMemoryCache _cache;
+        private readonly IFlurlClientCache _clientCache;
 
         public FriendsServiceHttpTests()
         {
-            _httpTest = new HttpTest();
             _cache = new MemoryCache(new MemoryCacheOptions());
-            _service = new FriendsService(_cache, Configuration);
+            FlurlHttp.Clients.Remove("steam-api"); // Clear any cached client from previous tests
+            _httpTest = new HttpTest(); // Create HttpTest before any clients are created
+            _clientCache = FlurlHttp.Clients;
+            _clientCache.GetOrAdd("steam-api", "https://api.steampowered.com"); // Now create the client
+            _service = new FriendsService(_cache, Configuration, _clientCache);
         }
 
         [Fact]
@@ -112,12 +119,12 @@ namespace Steam_API_Tests.Services
             friend1.SteamLevel.Should().Be(25);
 
             // Verify HTTP calls
-            _httpTest.ShouldHaveCalled("https://api.steampowered.com/ISteamUser/GetFriendList/v1/*")
+            _httpTest.ShouldHaveCalled("https://api.steampowered.com/ISteamUser/GetFriendList/v1*")
                     .WithQueryParam("steamid", steamId)
                     .WithQueryParam("relationship", "friend")
                     .Times(1);
 
-            _httpTest.ShouldHaveCalled("https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2/*")
+            _httpTest.ShouldHaveCalled("https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v2*")
                     .Times(1);
         }
 

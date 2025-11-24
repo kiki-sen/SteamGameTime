@@ -1,22 +1,31 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { LoginButtonComponent } from './login-button.component';
 import { AuthService } from '../../services/auth.service';
+import { AuthApiService } from '../../services/auth-api.service';
 import { signal } from '@angular/core';
+import { of } from 'rxjs';
 
 describe('LoginButtonComponent', () => {
   let component: LoginButtonComponent;
   let fixture: ComponentFixture<LoginButtonComponent>;
   let mockAuthService: jasmine.SpyObj<AuthService>;
+  let mockAuthApiService: jasmine.SpyObj<AuthApiService>;
 
   beforeEach(async () => {
-    mockAuthService = jasmine.createSpyObj('AuthService', ['clear'], {
+    mockAuthService = jasmine.createSpyObj('AuthService', ['clear', 'refreshToken'], {
       token: signal<string | null>(null)
     });
+    mockAuthService.refreshToken.and.returnValue('mock-refresh-token');
+
+    mockAuthApiService = jasmine.createSpyObj('AuthApiService', ['logout']);
+    mockAuthApiService.logout.and.returnValue(of(void 0));
 
     await TestBed.configureTestingModule({
-      imports: [LoginButtonComponent],
+      imports: [LoginButtonComponent, HttpClientTestingModule],
       providers: [
-        { provide: AuthService, useValue: mockAuthService }
+        { provide: AuthService, useValue: mockAuthService },
+        { provide: AuthApiService, useValue: mockAuthApiService }
       ]
     }).compileComponents();
 

@@ -1,5 +1,8 @@
+using Flurl.Http;
 using Flurl.Http.Testing;
+using Flurl.Http.Configuration;
 using Microsoft.Extensions.Caching.Memory;
+using Moq;
 using Steam_API.Dto.Input;
 using Steam_API.Services;
 using Steam_API_Tests.TestHelpers;
@@ -12,12 +15,16 @@ namespace Steam_API_Tests.Services
         private readonly HttpTest _httpTest;
         private readonly FriendsService _service;
         private readonly IMemoryCache _cache;
+        private readonly IFlurlClientCache _clientCache;
 
         public FriendsServiceLeaderboardHttpTests()
         {
-            _httpTest = new HttpTest();
             _cache = new MemoryCache(new MemoryCacheOptions());
-            _service = new FriendsService(_cache, Configuration);
+            FlurlHttp.Clients.Remove("steam-api"); // Clear any cached client from previous tests
+            _httpTest = new HttpTest(); // Create HttpTest before any clients are created
+            _clientCache = FlurlHttp.Clients;
+            _clientCache.GetOrAdd("steam-api", "https://api.steampowered.com"); // Now create the client
+            _service = new FriendsService(_cache, Configuration, _clientCache);
         }
 
         [Fact]
@@ -170,7 +177,7 @@ namespace Steam_API_Tests.Services
             secondPlayer.Hours2Weeks.Should().BeApproximately(2.0, 0.1);
 
             // Verify app-specific API calls were made
-            _httpTest.ShouldHaveCalled("https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/*")
+            _httpTest.ShouldHaveCalled("https://api.steampowered.com/IPlayerService/GetOwnedGames/v1*")
                     .WithQueryParam("appids_filter[0]", appId.ToString())
                     .Times(2); // Once for friend, once for me
         }
@@ -321,7 +328,7 @@ namespace Steam_API_Tests.Services
                 row.HoursTotal.Should().BeApproximately(300.0, 0.1, "both players should have 300 hours total"));
 
             // Verify no app filter was used for total hours
-            _httpTest.ShouldHaveCalled("https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/*")
+            _httpTest.ShouldHaveCalled("https://api.steampowered.com/IPlayerService/GetOwnedGames/v1*")
                     .WithoutQueryParam("appids_filter[0]")
                     .Times(2);
         }
